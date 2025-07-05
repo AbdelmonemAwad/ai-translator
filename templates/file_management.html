@@ -1,0 +1,400 @@
+{% extends "layout.html" %}
+{% block title %}{{ page_title }} - {{ t('app_title') }}{% endblock %}
+
+{% block content %}
+<div class="panel">
+    <div class="panel-header">
+        <h2>{{ page_title }} <span id="file-count" class="item-count">(...)</span></h2>
+        <div class="view-controls">
+            <div class="search-container">
+                <input type="search" id="search-box" placeholder="{{ t('search_for_file') }}">
+                <button type="button" id="search-btn" class="search-btn">
+                    <i data-feather="search"></i> {{ t('search') }}
+                </button>
+            </div>
+            <select id="media-type-filter" class="action-btn" style="background-color: var(--bg-secondary);">
+                <option value="all" {% if media_type == 'all' %}selected{% endif %}>{{ t('all') }}</option>
+                <option value="movies" {% if media_type == 'movies' %}selected{% endif %}>{{ t('movies') }}</option>
+                <option value="tv" {% if media_type == 'tv' %}selected{% endif %}>{{ t('tv_shows') }}</option>
+            </select>
+            <select id="grid-columns-select" class="action-btn" style="background-color: var(--bg-secondary);">
+                <option value="auto">{{ t('auto_columns') }}</option>
+                <option value="1">{{ t('one_column') }}</option>
+                <option value="2">{{ t('two_columns') }}</option>
+                <option value="3">{{ t('three_columns') }}</option>
+                <option value="4">{{ t('four_columns') }}</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="bulk-actions">
+        <input type="checkbox" id="selectAll" title="{{ t('select_deselect_all') }}">
+        {% if status == 'untranslated' %}
+            <button id="bulk-translate-btn" class="action-btn success-btn" disabled><i data-feather="play"></i> {{ t('translate_selected') }}</button>
+            <button id="bulk-blacklist-btn" class="action-btn warning-btn" disabled><i data-feather="slash"></i> {{ t('ignore_selected') }}</button>
+        {% else %}
+            <button id="bulk-delete-btn" class="action-btn danger-btn" disabled><i data-feather="trash-2"></i> {{ t('delete_translation_selected') }}</button>
+        {% endif %}
+        
+        <button id="scan-status-btn" class="action-btn info-btn" style="margin-right: auto;" onclick="scanTranslationStatus()">
+            <i data-feather="search"></i> {{ t('scan_translation_status') }}
+        </button>
+        
+        <!-- Sample data buttons moved to Development Tools in Settings -->
+    </div>
+
+    <div class="file-list-container">
+        <div class="spinner" id="spinner"></div>
+        <ul class="file-list" id="file-list"></ul>
+    </div>
+
+    <div class="pagination-controls" id="pagination"></div>
+    
+    <!-- Bottom pagination (duplicate for convenience) -->
+    <div class="pagination-controls pagination-bottom" id="pagination-bottom"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let currentPage = 1;
+    let currentSearch = '';
+    let currentMediaType = 'all';
+    const status = '{{ status if status else "all" }}';
+    
+    // Translation variables
+    const translations = {
+        translate: '{{ t("translate") }}',
+        ignore: '{{ t("ignore") }}',
+        delete: '{{ t("delete") }}',
+        no_files_match_search: '{{ t("no_files_match_search") }}',
+        error_loading_files: '{{ t("error_loading_files") }}',
+        previous: '{{ t("previous") }}',
+        next: '{{ t("next") }}'
+    };
+    
+    const fileList = document.getElementById('file-list');
+    const spinner = document.getElementById('spinner');
+    const paginationControls = document.getElementById('pagination');
+    const paginationControlsBottom = document.getElementById('pagination-bottom');
+    const fileCountSpan = document.getElementById('file-count');
+    const searchBox = document.getElementById('search-box');
+    const searchBtn = document.getElementById('search-btn');
+    const mediaTypeFilter = document.getElementById('media-type-filter');
+    const gridColumnsSelect = document.getElementById('grid-columns-select');
+    const selectAllCheckbox = document.getElementById('selectAll');
+
+    const bulkTranslateBtn = document.getElementById('bulk-translate-btn');
+    const bulkBlacklistBtn = document.getElementById('bulk-blacklist-btn');
+    const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+
+    async function loadFiles(page = 1, search = '', mediaType = 'all') {
+        spinner.style.display = 'block';
+        fileList.innerHTML = '';
+        currentPage = page;
+        currentSearch = search;
+        currentMediaType = mediaType;
+        
+        try {
+            const response = await fetch(`/api/files?page=${page}&search=${encodeURIComponent(search)}&media_type=${mediaType}&status=${status}`);
+            const data = await response.json();
+
+            if (data.error) throw new Error(data.error);
+            
+            fileCountSpan.textContent = `(${data.pagination ? data.pagination.total : data.total_files || data.files.length})`;
+            
+            if (data.files.length > 0) {
+                data.files.forEach(file => {
+                    const li = document.createElement('li');
+                    li.className = 'file-item';
+                    
+                    // Use path instead of local_path and handle if it's undefined
+                    const filePath = file.path || file.local_path || '';
+                    const fileName = filePath ? filePath.split('/').pop() : (file.title || 'Unknown File');
+                    
+                    // Create poster image if available
+                    const posterHtml = file.poster_url ? 
+                        `<img src="${file.poster_url}" alt="${file.title}" class="file-poster" style="width: 50px; height: 75px; object-fit: cover; border-radius: 4px; margin-left: 0.5rem;">` : 
+                        '<i data-feather="film" class="file-icon"></i>';
+                    
+                    // Show file info with more details
+                    const fileInfo = `
+                        <div class="file-title">${file.title || fileName}</div>
+                        <div class="file-details">
+                            <span class="file-year">${file.year || ''}</span>
+                            <span class="file-quality">${file.quality || ''}</span>
+                            <span class="file-type">${file.media_type === 'movie' ? translations.movie : translations.episode}</span>
+                            ${file.translated ? `<span class="status-badge success">${translations.translated}</span>` : ''}
+                            ${file.blacklisted ? `<span class="status-badge warning">${translations.blacklisted}</span>` : ''}
+                        </div>
+                    `;
+                    
+                    let actionsHtml = '';
+                    if (status === 'untranslated') {
+                        actionsHtml = `
+                            <button class="action-btn small-button btn-translate" onclick="runSingleTask('translate', '${filePath}')"><i data-feather="play"></i> ${translations.translate}</button>
+                            <button class="action-btn small-button btn-ignore" onclick="runSingleTask('blacklist', '${filePath}')"><i data-feather="slash"></i> ${translations.ignore}</button>
+                        `;
+                    } else {
+                         actionsHtml = `<button class="action-btn small-button btn-delete" onclick="runSingleTask('delete', '${filePath}')"><i data-feather="trash-2"></i> ${translations.delete}</button>`;
+                    }
+
+                    li.innerHTML = `
+                        <div class="file-item-header">
+                            <input type="checkbox" class="file-item-select" value="${filePath}">
+                            ${posterHtml}
+                        </div>
+                        <div class="file-info">${fileInfo}</div>
+                        <div class="file-actions">${actionsHtml}</div>
+                    `;
+                    fileList.appendChild(li);
+                });
+            } else {
+                fileList.innerHTML = `<li class="file-item-empty">${translations.no_files_match_search}</li>`;
+            }
+            feather.replace();
+            renderPagination(data.pagination ? data.pagination.pages : 1, data.pagination ? data.pagination.page : 1);
+            updateBulkButtons();
+
+        } catch (error) {
+            fileList.innerHTML = `<li class="file-item-empty">${translations.error_loading_files}: ${error.message}</li>`;
+        } finally {
+            spinner.style.display = 'none';
+        }
+    }
+
+    function renderPagination(totalPages, page) {
+        const paginationHTML = generatePaginationHTML(totalPages, page);
+        paginationControls.innerHTML = paginationHTML;
+        paginationControlsBottom.innerHTML = paginationHTML;
+    }
+    
+    function generatePaginationHTML(totalPages, page) {
+        if (totalPages <= 1) return '';
+        
+        let html = '';
+        
+        // Previous button
+        const prevDisabled = page <= 1 ? 'disabled' : '';
+        html += `<button onclick="loadFiles(${page - 1}, currentSearch, currentMediaType)" ${prevDisabled}>${translations.previous}</button>`;
+        
+        // Page numbers
+        const startPage = Math.max(1, page - 2);
+        const endPage = Math.min(totalPages, page + 2);
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const activeClass = i === page ? 'active' : '';
+            html += `<button class="${activeClass}" onclick="loadFiles(${i}, currentSearch, currentMediaType)">${i}</button>`;
+        }
+        
+        // Next button
+        const nextDisabled = page >= totalPages ? 'disabled' : '';
+        html += `<button onclick="loadFiles(${page + 1}, currentSearch, currentMediaType)" ${nextDisabled}>${translations.next}</button>`;
+        
+        return html;
+    }
+
+    function updateBulkButtons() {
+        const selected = document.querySelectorAll('.file-item-select:checked').length > 0;
+        if(bulkTranslateBtn) bulkTranslateBtn.disabled = !selected;
+        if(bulkBlacklistBtn) bulkBlacklistBtn.disabled = !selected;
+        if(bulkDeleteBtn) bulkDeleteBtn.disabled = !selected;
+    }
+
+    async function runSingleTask(action, path) {
+        if (confirm(`هل أنت متأكد من ${action === 'translate' ? 'ترجمة' : action === 'blacklist' ? 'تجاهل' : 'حذف'} هذا الملف؟`)) {
+            try {
+                const response = await fetch(`/action/single-${action}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `path=${encodeURIComponent(path)}`
+                });
+                
+                if (response.ok) {
+                    loadFiles(currentPage, currentSearch, currentMediaType);
+                } else {
+                    alert('فشل في تنفيذ العملية');
+                }
+            } catch (error) {
+                alert('خطأ في الاتصال');
+            }
+        }
+    }
+
+    // Event Listeners
+    searchBox.addEventListener('input', () => { loadFiles(1, searchBox.value, currentMediaType); });
+    mediaTypeFilter.addEventListener('change', () => { loadFiles(1, currentSearch, mediaTypeFilter.value); });
+    selectAllCheckbox.addEventListener('change', () => {
+        document.querySelectorAll('.file-item-select').forEach(cb => cb.checked = selectAllCheckbox.checked);
+        updateBulkButtons();
+    });
+    fileList.addEventListener('change', (e) => {
+        if (e.target.classList.contains('file-item-select')) {
+            updateBulkButtons();
+        }
+    });
+
+    // Note: Sample data creation and clearing functions moved to Development Tools in Settings
+
+    // Note: Sample data button functions moved to Development Tools in Settings
+
+    // Make runSingleTask globally available
+    window.runSingleTask = runSingleTask;
+
+    // Event listeners
+    searchBtn.addEventListener('click', function() {
+        const searchValue = searchBox.value;
+        const mediaType = mediaTypeFilter.value;
+        loadFiles(1, searchValue, mediaType);
+    });
+    
+    searchBox.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchBtn.click();
+        }
+    });
+    
+    mediaTypeFilter.addEventListener('change', function() {
+        const searchValue = searchBox.value;
+        const mediaType = this.value;
+        loadFiles(1, searchValue, mediaType);
+    });
+
+    loadFiles(1, '', 'all');
+});
+
+async function scanTranslationStatus() {
+    const scanButton = document.getElementById('scan-status-btn');
+    const originalText = scanButton.innerHTML;
+    
+    try {
+        // Disable button and show loading state
+        scanButton.disabled = true;
+        scanButton.innerHTML = '<i data-feather="loader"></i> {{ t("scanning") }}...';
+        feather.replace();
+        
+        const response = await fetch('{{ url_for("action_scan_translation_status") }}', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show success message and reload files
+            showNotification(data.message, 'success');
+            setTimeout(() => {
+                // Reload the current page of files to reflect changes
+                loadFiles(currentPage, currentSearch, currentMediaType);
+            }, 2000);
+        } else {
+            // Show error message
+            showNotification(data.error || '{{ t("failed_to_start_task") }}', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Scan error:', error);
+        showNotification('{{ t("failed_to_start_task") }}', 'error');
+    } finally {
+        // Re-enable button and restore original text
+        scanButton.disabled = false;
+        scanButton.innerHTML = originalText;
+        feather.replace();
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `flash ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        padding: 15px 20px;
+        border-radius: 5px;
+        color: white;
+        font-weight: bold;
+        max-width: 300px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    `;
+    
+    // Set background color based on type
+    switch(type) {
+        case 'success':
+            notification.style.backgroundColor = 'var(--accent-green)';
+            break;
+        case 'error':
+            notification.style.backgroundColor = 'var(--accent-red)';
+            break;
+        case 'warning':
+            notification.style.backgroundColor = 'var(--accent-yellow)';
+            break;
+        default:
+            notification.style.backgroundColor = 'var(--accent-primary)';
+    }
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 5000);
+}
+
+// Grid columns control
+const gridColumnsSelect = document.getElementById('grid-columns-select');
+if (gridColumnsSelect) {
+gridColumnsSelect.addEventListener('change', function() {
+    const fileList = document.getElementById('file-list');
+    const columnCount = this.value;
+    
+    // Remove existing grid classes
+    fileList.classList.remove('grid-1-col', 'grid-2-col', 'grid-3-col', 'grid-4-col', 'grid-auto');
+    
+    // Add new grid class
+    if (columnCount === 'auto') {
+        fileList.classList.add('grid-auto');
+    } else {
+        fileList.classList.add(`grid-${columnCount}-col`);
+    }
+    
+    // Save user preference
+    localStorage.setItem('file-grid-columns', columnCount);
+});
+}
+
+// Load saved grid preference on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedGridColumns = localStorage.getItem('file-grid-columns');
+    if (savedGridColumns && gridColumnsSelect) {
+        gridColumnsSelect.value = savedGridColumns;
+        
+        const fileList = document.getElementById('file-list');
+        if (fileList) {
+            fileList.classList.remove('grid-1-col', 'grid-2-col', 'grid-3-col', 'grid-4-col', 'grid-auto');
+            
+            if (savedGridColumns === 'auto') {
+                fileList.classList.add('grid-auto');
+            } else {
+                fileList.classList.add(`grid-${savedGridColumns}-col`);
+            }
+        }
+    } else {
+        // Default to auto grid
+        const fileList = document.getElementById('file-list');
+        if (fileList) {
+            fileList.classList.add('grid-auto');
+        }
+    }
+});
+</script>
+{% endblock %}

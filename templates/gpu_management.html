@@ -1,0 +1,506 @@
+<!-- GPU Management Section for Settings -->
+<div class="gpu-management-section" style="margin-top: 20px;">
+    <div class="gpu-header" style="display: flex; justify-content: between; align-items: center; margin-bottom: 15px;">
+        <h4 style="color: var(--accent-primary); margin: 0;">
+            <i data-feather="cpu"></i> {{ t('gpu_management') }}
+        </h4>
+        <div class="gpu-actions" style="display: flex; gap: 10px;">
+            <button type="button" class="btn-secondary" onclick="refreshGPUInfo()" style="padding: 8px 12px; font-size: 0.9em;">
+                <i data-feather="refresh-cw"></i> {{ t('refresh') }}
+            </button>
+            <button type="button" class="btn-primary" onclick="autoAllocateGPUs()" style="padding: 8px 12px; font-size: 0.9em;">
+                <i data-feather="zap"></i> {{ t('auto_allocate') }}
+            </button>
+        </div>
+    </div>
+    
+    <div id="gpu-status" class="gpu-status">
+        <div class="loading-gpu" style="text-align: center; padding: 20px; color: var(--text-secondary);">
+            <i data-feather="loader" class="rotating"></i> {{ t('loading_gpu_info') }}...
+        </div>
+    </div>
+    
+    <div id="gpu-allocation" class="gpu-allocation" style="display: none; margin-top: 20px;">
+        <h5 style="color: var(--text-primary); margin-bottom: 15px;">{{ t('current_allocation') }}:</h5>
+        <div class="allocation-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="service-allocation">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Whisper (Speech-to-Text):</label>
+                <select id="whisper-gpu-select" class="gpu-select" onchange="updateGPUAllocation()">
+                    <option value="auto">{{ t('auto_select') }}</option>
+                    <option value="cpu">{{ t('cpu_only') }}</option>
+                </select>
+                <div id="whisper-gpu-info" class="gpu-info-mini" style="margin-top: 5px; font-size: 0.85em; color: var(--text-secondary);"></div>
+            </div>
+            
+            <div class="service-allocation">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Ollama (Translation):</label>
+                <select id="ollama-gpu-select" class="gpu-select" onchange="updateGPUAllocation()">
+                    <option value="auto">{{ t('auto_select') }}</option>
+                    <option value="cpu">{{ t('cpu_only') }}</option>
+                </select>
+                <div id="ollama-gpu-info" class="gpu-info-mini" style="margin-top: 5px; font-size: 0.85em; color: var(--text-secondary);"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.gpu-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.gpu-card:hover {
+    border-color: var(--accent-primary);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+}
+
+.gpu-card.selected {
+    border-color: var(--accent-primary);
+    background: rgba(0, 123, 255, 0.05);
+}
+
+.gpu-card.recommended {
+    border-color: var(--accent-success);
+    background: rgba(40, 167, 69, 0.05);
+}
+
+.gpu-header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.gpu-name {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.gpu-score {
+    background: var(--accent-primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+.gpu-score.high {
+    background: var(--accent-success);
+}
+
+.gpu-score.medium {
+    background: var(--accent-warning);
+}
+
+.gpu-score.low {
+    background: var(--accent-danger);
+}
+
+.gpu-specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin: 10px 0;
+    font-size: 0.9em;
+}
+
+.gpu-spec {
+    text-align: center;
+    padding: 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+}
+
+.gpu-spec-label {
+    display: block;
+    font-size: 0.8em;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.gpu-spec-value {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.gpu-status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 8px;
+}
+
+.gpu-status-available { background: var(--accent-success); }
+.gpu-status-light { background: var(--accent-warning); }
+.gpu-status-moderate { background: var(--accent-warning); }
+.gpu-status-heavy { background: var(--accent-danger); }
+
+.gpu-recommendations {
+    margin-top: 10px;
+    padding: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+
+.gpu-recommendations .tag {
+    display: inline-block;
+    background: var(--accent-info);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin: 2px;
+    font-size: 0.75em;
+}
+
+.gpu-select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+}
+
+.rotating {
+    animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.allocation-status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 4px solid var(--accent-info);
+    background: rgba(0, 123, 255, 0.1);
+    font-size: 0.9em;
+}
+</style>
+
+<script>
+let gpuData = null;
+
+async function refreshGPUInfo() {
+    const statusDiv = document.getElementById('gpu-status');
+    const allocationDiv = document.getElementById('gpu-allocation');
+    
+    // Show loading
+    statusDiv.innerHTML = '<div class="loading-gpu" style="text-align: center; padding: 20px; color: var(--text-secondary);"><i data-feather="loader" class="rotating"></i> Refreshing GPU information...</div>';
+    
+    try {
+        const response = await fetch('/api/gpu/status');
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        gpuData = data;
+        displayGPUInfo(data);
+        setupGPUSelectors(data);
+        allocationDiv.style.display = 'block';
+        
+        // Re-initialize feather icons
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+        
+    } catch (error) {
+        statusDiv.innerHTML = `
+            <div class="error-gpu" style="text-align: center; padding: 20px; color: var(--accent-danger);">
+                <i data-feather="alert-circle"></i> Error loading GPU information: ${error.message}
+            </div>
+        `;
+    }
+}
+
+function displayGPUInfo(data) {
+    const statusDiv = document.getElementById('gpu-status');
+    
+    if (!data.nvidia_available) {
+        statusDiv.innerHTML = `
+            <div class="no-gpu" style="text-align: center; padding: 20px; color: var(--text-warning);">
+                <i data-feather="alert-triangle"></i>
+                <h4>No NVIDIA GPUs Available</h4>
+                <p>No NVIDIA GPUs detected. Services will run on CPU.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `<div class="gpu-grid">`;
+    
+    data.gpus.forEach(gpu => {
+        const scoreClass = gpu.performance_score >= 80 ? 'high' : 
+                          gpu.performance_score >= 60 ? 'medium' : 'low';
+        
+        const statusClass = gpu.utilization <= 20 ? 'available' :
+                           gpu.utilization <= 50 ? 'light' :
+                           gpu.utilization <= 80 ? 'moderate' : 'heavy';
+        
+        html += `
+            <div class="gpu-card" data-gpu-id="${gpu.id}">
+                <div class="gpu-header-info">
+                    <span class="gpu-name">GPU ${gpu.id}: ${gpu.name}</span>
+                    <span class="gpu-score ${scoreClass}">${gpu.performance_score}/100</span>
+                </div>
+                
+                <div class="gpu-specs">
+                    <div class="gpu-spec">
+                        <span class="gpu-spec-label">Memory</span>
+                        <span class="gpu-spec-value">${gpu.memory_free_gb}GB / ${gpu.memory_total_gb}GB</span>
+                    </div>
+                    <div class="gpu-spec">
+                        <span class="gpu-spec-label">Usage</span>
+                        <span class="gpu-spec-value">${gpu.utilization}%</span>
+                    </div>
+                    <div class="gpu-spec">
+                        <span class="gpu-spec-label">Temperature</span>
+                        <span class="gpu-spec-value">${gpu.temperature}°C</span>
+                    </div>
+                    <div class="gpu-spec">
+                        <span class="gpu-spec-label">Power</span>
+                        <span class="gpu-spec-value">${Math.round(gpu.power_draw)}W</span>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                    <span style="font-size: 0.9em;">
+                        ${gpu.status}
+                        <span class="gpu-status-indicator gpu-status-${statusClass}"></span>
+                    </span>
+                    <span style="font-size: 0.85em; color: var(--text-secondary);">
+                        CUDA ${gpu.cuda_version}
+                    </span>
+                </div>
+                
+                <div class="gpu-recommendations">
+                    <strong>Recommended for:</strong>
+                    ${gpu.recommended_for.map(service => `<span class="tag">${service}</span>`).join('')}
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `</div>`;
+    
+    if (data.optimal_allocation) {
+        html += `
+            <div class="allocation-status">
+                <strong>Optimal Allocation:</strong><br>
+                Ollama (Translation): GPU ${data.optimal_allocation.ollama !== null ? data.optimal_allocation.ollama : 'CPU'}<br>
+                Whisper (Speech-to-Text): GPU ${data.optimal_allocation.whisper !== null ? data.optimal_allocation.whisper : 'CPU'}
+            </div>
+        `;
+    }
+    
+    statusDiv.innerHTML = html;
+}
+
+function setupGPUSelectors(data) {
+    const whisperSelect = document.getElementById('whisper-gpu-select');
+    const ollamaSelect = document.getElementById('ollama-gpu-select');
+    
+    if (!whisperSelect || !ollamaSelect) {
+        console.error('GPU selector elements not found');
+        return;
+    }
+    
+    // Clear existing GPU options (keep auto and cpu)
+    const defaultOptions = ['auto', 'cpu'];
+    [whisperSelect, ollamaSelect].forEach(select => {
+        const options = Array.from(select.options);
+        options.forEach(option => {
+            if (!defaultOptions.includes(option.value)) {
+                select.removeChild(option);
+            }
+        });
+    });
+    
+    // Add GPU options if available
+    if (data.gpus && data.gpus.length > 0) {
+        data.gpus.forEach(gpu => {
+            const optionText = `GPU ${gpu.id}: ${gpu.name} (${gpu.memory_total_gb || gpu.memory_total/1024}GB)`;
+            
+            const whisperOption = new Option(optionText, gpu.id.toString());
+            const ollamaOption = new Option(optionText, gpu.id.toString());
+            
+            whisperSelect.appendChild(whisperOption);
+            ollamaSelect.appendChild(ollamaOption);
+        });
+    }
+    
+    // Set current values from settings
+    setTimeout(loadCurrentAllocation, 100);
+}
+
+async function loadCurrentAllocation() {
+    try {
+        // Get current settings from form inputs
+        const whisperGpuInput = document.querySelector('input[name="whisper_gpu_id"]');
+        const ollamaGpuInput = document.querySelector('input[name="ollama_gpu_id"]');
+        
+        let whisperValue = 'auto';
+        let ollamaValue = 'auto';
+        
+        if (whisperGpuInput && whisperGpuInput.value) {
+            whisperValue = whisperGpuInput.value === '-1' ? 'auto' : 
+                          whisperGpuInput.value === 'cpu' ? 'cpu' : whisperGpuInput.value;
+        }
+        
+        if (ollamaGpuInput && ollamaGpuInput.value) {
+            ollamaValue = ollamaGpuInput.value === '-1' ? 'auto' : 
+                         ollamaGpuInput.value === 'cpu' ? 'cpu' : ollamaGpuInput.value;
+        }
+        
+        document.getElementById('whisper-gpu-select').value = whisperValue;
+        document.getElementById('ollama-gpu-select').value = ollamaValue;
+        
+        updateGPUInfoDisplay();
+        
+    } catch (error) {
+        console.log('Could not load current allocation, using defaults');
+        document.getElementById('whisper-gpu-select').value = 'auto';
+        document.getElementById('ollama-gpu-select').value = 'auto';
+    }
+}
+
+async function updateGPUAllocation() {
+    const whisperGpu = document.getElementById('whisper-gpu-select').value;
+    const ollamaGpu = document.getElementById('ollama-gpu-select').value;
+    
+    try {
+        // Update the form inputs as well
+        const whisperGpuInput = document.querySelector('input[name="whisper_gpu_id"]');
+        const ollamaGpuInput = document.querySelector('input[name="ollama_gpu_id"]');
+        
+        if (whisperGpuInput) {
+            whisperGpuInput.value = whisperGpu === 'auto' ? '-1' : whisperGpu;
+        }
+        
+        if (ollamaGpuInput) {
+            ollamaGpuInput.value = ollamaGpu === 'auto' ? '-1' : ollamaGpu;
+        }
+        
+        const response = await fetch('/api/gpu/allocate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                whisper_gpu: whisperGpu === 'auto' ? -1 : (whisperGpu === 'cpu' ? 'cpu' : parseInt(whisperGpu)),
+                ollama_gpu: ollamaGpu === 'auto' ? -1 : (ollamaGpu === 'cpu' ? 'cpu' : parseInt(ollamaGpu))
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            updateGPUInfoDisplay();
+            showNotification('تم تحديث تخصيص كروت الشاشة بنجاح', 'success');
+        } else {
+            throw new Error(result.error);
+        }
+        
+    } catch (error) {
+        showNotification('خطأ في تحديث تخصيص كروت الشاشة: ' + error.message, 'error');
+    }
+}
+
+async function autoAllocateGPUs() {
+    try {
+        const response = await fetch('/api/gpu/auto-allocate', {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update selectors to show new allocation
+            if (result.allocation.whisper !== null) {
+                document.getElementById('whisper-gpu-select').value = result.allocation.whisper;
+            } else {
+                document.getElementById('whisper-gpu-select').value = 'cpu';
+            }
+            
+            if (result.allocation.ollama !== null) {
+                document.getElementById('ollama-gpu-select').value = result.allocation.ollama;
+            } else {
+                document.getElementById('ollama-gpu-select').value = 'cpu';
+            }
+            
+            updateGPUInfoDisplay();
+            showNotification('تم التخصيص التلقائي لكروت الشاشة بنجاح', 'success');
+        } else {
+            throw new Error(result.error);
+        }
+        
+    } catch (error) {
+        showNotification('خطأ في التخصيص التلقائي: ' + error.message, 'error');
+    }
+}
+
+function updateGPUInfoDisplay() {
+    const whisperGpu = document.getElementById('whisper-gpu-select').value;
+    const ollamaGpu = document.getElementById('ollama-gpu-select').value;
+    
+    const whisperInfo = document.getElementById('whisper-gpu-info');
+    const ollamaInfo = document.getElementById('ollama-gpu-info');
+    
+    if (gpuData && gpuData.gpus) {
+        if (whisperGpu !== 'auto' && whisperGpu !== 'cpu') {
+            const gpu = gpuData.gpus.find(g => g.id == whisperGpu);
+            if (gpu) {
+                whisperInfo.innerHTML = `${gpu.name} - ${gpu.memory_free_gb}GB available`;
+            }
+        } else {
+            whisperInfo.innerHTML = whisperGpu === 'auto' ? 'Will be automatically selected' : 'Will run on CPU';
+        }
+        
+        if (ollamaGpu !== 'auto' && ollamaGpu !== 'cpu') {
+            const gpu = gpuData.gpus.find(g => g.id == ollamaGpu);
+            if (gpu) {
+                ollamaInfo.innerHTML = `${gpu.name} - ${gpu.memory_free_gb}GB available`;
+            }
+        } else {
+            ollamaInfo.innerHTML = ollamaGpu === 'auto' ? 'Will be automatically selected' : 'Will run on CPU';
+        }
+    }
+}
+
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div style="padding: 10px 15px; background: var(--accent-${type === 'success' ? 'success' : 'danger'}); color: white; border-radius: 4px; margin: 10px 0;">
+            ${message}
+        </div>
+    `;
+    
+    // Add to page
+    const container = document.querySelector('.gpu-management-section');
+    container.insertBefore(notification, container.firstChild);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    refreshGPUInfo();
+});
+</script>

@@ -1,0 +1,352 @@
+{% extends "layout.html" %}
+{% block title %}{{ t('blacklist_management') }} - {{ t('app_title') }}{% endblock %}
+{% block content %}
+<div class="panel">
+    <div class="panel-header">
+        <h2>{{ t('blacklist_management') }} <span id="blacklist-count" class="item-count">(...)</span></h2>
+        <div class="view-controls">
+            <div class="search-container">
+                <input type="search" id="search-box" placeholder="{{ t('search_for_file') }}">
+                <button type="button" id="search-btn" class="search-btn">
+                    <i data-feather="search"></i> {{ t('search') }}
+                </button>
+            </div>
+            <select id="media-type-filter" class="action-btn" style="background-color: var(--bg-secondary);">
+                <option value="all">{{ t('all') }}</option>
+                <option value="movies">{{ t('movies') }}</option>
+                <option value="tv">{{ t('tv_shows') }}</option>
+            </select>
+            <select id="grid-columns-select" class="action-btn" style="background-color: var(--bg-secondary);">
+                <option value="auto">{{ t('auto_columns') }}</option>
+                <option value="1">{{ t('one_column') }}</option>
+                <option value="2">{{ t('two_columns') }}</option>
+                <option value="3">{{ t('three_columns') }}</option>
+                <option value="4">{{ t('four_columns') }}</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="bulk-actions">
+        <input type="checkbox" id="selectAll" title="{{ t('select_deselect_all') }}">
+        <button id="bulk-remove-btn" class="action-btn success-btn" disabled>
+            <i data-feather="check"></i> {{ t('remove_selected') }}
+        </button>
+        
+        <!-- Sample data buttons moved to Development Tools in Settings -->
+    </div>
+    <p>{{ t('blacklist_description') }}</p>
+    
+    <div class="file-list-container">
+        <ul class="file-list" id="blacklist-file-list">
+            {% if blacklisted_files %}
+                {% for file in blacklisted_files %}
+                <li class="file-item" style="border-right-color: var(--text-warning);">
+                    <div class="file-item-header">
+                        <input type="checkbox" class="file-item-select" value="{{ file.path }}">
+                        <div class="file-poster-container">
+                            {% if file.poster_url %}
+                                <img src="{{ file.poster_url }}" alt="{{ file.title }}" class="file-poster" style="width: 50px; height: 75px; object-fit: cover; border-radius: 4px;" 
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="file-icon-fallback" style="display: none; width: 50px; height: 75px; background: var(--bg-secondary); border-radius: 4px; align-items: center; justify-content: center;">
+                                    <i data-feather="film" style="color: var(--text-secondary);"></i>
+                                </div>
+                            {% else %}
+                                <div class="file-icon-fallback" style="width: 50px; height: 75px; background: var(--bg-secondary); border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                    <i data-feather="film" style="color: var(--text-secondary);"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="file-info">
+                        <div class="file-title">{{ file.title or file.path.split('/')[-1] }}</div>
+                        <div class="file-details">
+                            <span class="file-year">{{ file.year or '' }}</span>
+                            <span class="file-quality">{{ file.quality or '' }}</span>
+                            <span class="file-type">{{ t('movie') if file.media_type == 'movie' else t('episode') }}</span>
+                            <span class="status-badge warning">{{ t('blacklisted') }}</span>
+                        </div>
+                        <div class="file-path">{{ file.path }}</div>
+                    </div>
+                    <div class="file-actions">
+                        <form action="{{ url_for('action_remove_from_blacklist') }}" method="post" style="display: inline;">
+                            <input type="hidden" name="path" value="{{ file.path }}">
+                            <button type="submit" class="action-btn success-btn">
+                                <i data-feather="check"></i>
+                                {{ t('remove_from_list') }}
+                            </button>
+                        </form>
+                    </div>
+                </li>
+                {% endfor %}
+            {% endif %}
+            
+            {% if file_blacklist %}
+                {% for path in file_blacklist %}
+                    {% set file_in_db = false %}
+                    {% for db_file in blacklisted_files %}
+                        {% if db_file.path == path %}
+                            {% set file_in_db = true %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if not file_in_db %}
+                    <li class="file-item" style="border-right-color: var(--text-secondary);">
+                        <div class="file-item-header">
+                            <input type="checkbox" class="file-item-select" value="{{ path }}">
+                            <div class="file-icon-fallback" style="width: 50px; height: 75px; background: var(--bg-secondary); border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-left: 0.5rem;">
+                                <i data-feather="file" style="color: var(--text-secondary);"></i>
+                            </div>
+                        </div>
+                        <div class="file-info">
+                            <div class="file-title">{{ path.split('/')[-1] }}</div>
+                            <div class="file-details">
+                                <span class="status-badge secondary">{{ t('file_only') }}</span>
+                            </div>
+                            <div class="file-path">{{ path }}</div>
+                        </div>
+                        <div class="file-actions">
+                            <form action="{{ url_for('action_remove_from_blacklist') }}" method="post" style="display: inline;">
+                                <input type="hidden" name="path" value="{{ path }}">
+                                <button type="submit" class="action-btn success-btn">
+                                    <i data-feather="check"></i>
+                                    {{ t('remove_from_list') }}
+                                </button>
+                            </form>
+                        </div>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            
+            {% if not blacklisted_files and not file_blacklist %}
+                <li class="file-item-empty">{{ t('blacklist_empty') }}</li>
+            {% endif %}
+        </ul>
+    </div>
+    
+    <div class="pagination-controls" id="pagination"></div>
+    <div class="pagination-controls" id="pagination-bottom"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    feather.replace();
+    
+    // Initialize page variables
+    let currentPage = 1;
+    let currentSearch = '';
+    let currentMediaType = 'all';
+    let totalFiles = 0;
+    
+    // Get elements
+    const blacklistCount = document.getElementById('blacklist-count');
+    const searchBox = document.getElementById('search-box');
+    const searchBtn = document.getElementById('search-btn');
+    const mediaTypeFilter = document.getElementById('media-type-filter');
+    const gridColumnsSelect = document.getElementById('grid-columns-select');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const bulkRemoveBtn = document.getElementById('bulk-remove-btn');
+    const fileList = document.getElementById('blacklist-file-list');
+    const paginationTop = document.getElementById('pagination');
+    const paginationBottom = document.getElementById('pagination-bottom');
+    
+    // Count and display total files
+    updateFileCount();
+    
+    // Search functionality
+    searchBtn.addEventListener('click', performSearch);
+    searchBox.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+    
+    // Filter functionality
+    mediaTypeFilter.addEventListener('change', function() {
+        currentMediaType = this.value;
+        filterFiles();
+    });
+    
+    // Select all functionality
+    selectAllCheckbox.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.file-item-select');
+        checkboxes.forEach(cb => {
+            cb.checked = this.checked;
+        });
+        updateBulkButtons();
+    });
+    
+    // Update bulk buttons when individual checkboxes change
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('file-item-select')) {
+            updateBulkButtons();
+        }
+    });
+    
+    // Bulk remove functionality
+    bulkRemoveBtn.addEventListener('click', async function() {
+        const selectedPaths = Array.from(document.querySelectorAll('.file-item-select:checked'))
+            .map(cb => cb.value);
+        
+        if (selectedPaths.length === 0) return;
+        
+        if (!confirm(`{{ t('confirm_remove_selected') }}`)) return;
+        
+        // Remove selected items
+        for (const path of selectedPaths) {
+            await removeFromBlacklist(path);
+        }
+        
+        // Reload page
+        location.reload();
+    });
+    
+    function updateFileCount() {
+        const visibleItems = document.querySelectorAll('.file-item:not(.file-item-empty)').length;
+        blacklistCount.textContent = `(${visibleItems})`;
+    }
+    
+    function performSearch() {
+        currentSearch = searchBox.value.toLowerCase();
+        filterFiles();
+    }
+    
+    function filterFiles() {
+        const items = document.querySelectorAll('.file-item:not(.file-item-empty)');
+        let visibleCount = 0;
+        
+        items.forEach(item => {
+            const title = item.querySelector('.file-title')?.textContent?.toLowerCase() || '';
+            const path = item.querySelector('.file-path')?.textContent?.toLowerCase() || '';
+            const mediaType = item.querySelector('.file-type')?.textContent?.toLowerCase() || '';
+            
+            const matchesSearch = !currentSearch || 
+                title.includes(currentSearch) || 
+                path.includes(currentSearch);
+            
+            const matchesType = currentMediaType === 'all' || 
+                (currentMediaType === 'movies' && mediaType.includes('{{ t("movie")|lower }}')) ||
+                (currentMediaType === 'tv' && mediaType.includes('{{ t("episode")|lower }}'));
+            
+            if (matchesSearch && matchesType) {
+                item.style.display = '';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        blacklistCount.textContent = `(${visibleCount})`;
+        
+        // Show/hide empty message
+        const emptyMessage = document.querySelector('.file-item-empty');
+        if (emptyMessage) {
+            emptyMessage.style.display = visibleCount === 0 ? '' : 'none';
+        }
+    }
+    
+    function updateBulkButtons() {
+        const selected = document.querySelectorAll('.file-item-select:checked').length > 0;
+        bulkRemoveBtn.disabled = !selected;
+    }
+    
+    async function removeFromBlacklist(path) {
+        try {
+            const formData = new FormData();
+            formData.append('path', path);
+            
+            const response = await fetch('{{ url_for("action_remove_from_blacklist") }}', {
+                method: 'POST',
+                body: formData
+            });
+            
+            return response.ok;
+        } catch (error) {
+            console.error('Error removing from blacklist:', error);
+            return false;
+        }
+    }
+    
+    // Note: Sample blacklist creation and clearing functions moved to Development Tools in Settings
+
+    // Grid columns control
+    gridColumnsSelect.addEventListener('change', function() {
+        const fileList = document.getElementById('blacklist-file-list');
+        const columnCount = this.value;
+        
+        // Remove existing grid classes
+        fileList.classList.remove('grid-1-col', 'grid-2-col', 'grid-3-col', 'grid-4-col', 'grid-auto');
+        
+        // Add new grid class
+        if (columnCount === 'auto') {
+            fileList.classList.add('grid-auto');
+        } else {
+            fileList.classList.add(`grid-${columnCount}-col`);
+        }
+        
+        // Save user preference
+        localStorage.setItem('blacklist-grid-columns', columnCount);
+    });
+
+    // Load saved grid preference
+    const savedGridColumns = localStorage.getItem('blacklist-grid-columns');
+    if (savedGridColumns) {
+        gridColumnsSelect.value = savedGridColumns;
+        
+        const fileList = document.getElementById('blacklist-file-list');
+        fileList.classList.remove('grid-1-col', 'grid-2-col', 'grid-3-col', 'grid-4-col', 'grid-auto');
+        
+        if (savedGridColumns === 'auto') {
+            fileList.classList.add('grid-auto');
+        } else {
+            fileList.classList.add(`grid-${savedGridColumns}-col`);
+        }
+    } else {
+        // Default to auto grid
+        document.getElementById('blacklist-file-list').classList.add('grid-auto');
+    }
+});
+
+// Notification function for blacklist page
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        max-width: 400px;
+        word-wrap: break-word;
+    `;
+    
+    notification.textContent = message;
+    
+    switch(type) {
+        case 'success':
+            notification.style.backgroundColor = 'var(--accent-green)';
+            break;
+        case 'error':
+            notification.style.backgroundColor = 'var(--accent-red)';
+            break;
+        case 'warning':
+            notification.style.backgroundColor = 'var(--text-warning)';
+            break;
+        default:
+            notification.style.backgroundColor = 'var(--accent-primary)';
+    }
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

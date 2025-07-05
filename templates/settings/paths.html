@@ -1,0 +1,637 @@
+{% extends "settings/layout.html" %}
+
+{% block title %}{{ t('file_paths_settings') }}{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/file-browser.js') }}"></script>
+{% endblock %}
+
+{% block settings_content %}
+<div class="settings-content">
+    <div class="settings-header">
+        <div class="header-icon">
+            <i data-feather="folder"></i>
+        </div>
+        <div class="header-content">
+            <h2>{{ t('file_paths_settings') }}</h2>
+            <p>{{ t('paths_description') }}</p>
+        </div>
+    </div>
+
+    <!-- Sub-tabs for Paths section -->
+    <div class="sub-tabs">
+        <a href="#local-paths" class="sub-tab active" onclick="showPathsTab('local-paths', this)">
+            <i data-feather="hard-drive"></i>
+            {{ t('local_paths') }}
+        </a>
+        <a href="#remote-storage" class="sub-tab" onclick="showPathsTab('remote-storage', this)">
+            <i data-feather="cloud"></i>
+            {{ t('remote_storage') }}
+        </a>
+    </div>
+
+    <form method="post" action="{{ url_for('settings_paths') }}">
+        <!-- Local Paths Tab -->
+        <div id="local-paths" class="tab-content active">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="hard-drive"></i>
+                    {{ t('local_paths') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('local_paths_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('local_paths_description') }}
+                    </div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- Movies Local Mount -->
+                    <div class="setting-group">
+                        <label for="local_movies_mount" class="setting-label">
+                            <i data-feather="film"></i>
+                            {{ t('local_movies_mount') }}
+                        </label>
+                        <div class="input-with-button">
+                            <input type="text" 
+                                   id="local_movies_mount" 
+                                   name="local_movies_mount" 
+                                   value="{{ current_settings.get('local_movies_mount', '/mnt/movies') }}" 
+                                   class="setting-input"
+                                   placeholder="/mnt/movies">
+                            <button type="button" 
+                                    class="browse-button" 
+                                    onclick="openFileBrowser('local_movies_mount')"
+                                    title="{{ t('browse_folders') }}">
+                                <i data-feather="folder"></i>
+                            </button>
+                        </div>
+                        <div class="setting-description">{{ t('local_movies_mount_description') }}</div>
+                    </div>
+
+                    <!-- TV Series Local Mount -->
+                    <div class="setting-group">
+                        <label for="local_series_mount" class="setting-label">
+                            <i data-feather="tv"></i>
+                            {{ t('local_series_mount') }}
+                        </label>
+                        <div class="input-with-button">
+                            <input type="text" 
+                                   id="local_series_mount" 
+                                   name="local_series_mount" 
+                                   value="{{ current_settings.get('local_series_mount', '/mnt/series') }}" 
+                                   class="setting-input"
+                                   placeholder="/mnt/series">
+                            <button type="button" 
+                                    class="browse-button" 
+                                    onclick="openFileBrowser('local_series_mount')"
+                                    title="{{ t('browse_folders') }}">
+                                <i data-feather="folder"></i>
+                            </button>
+                        </div>
+                        <div class="setting-description">{{ t('local_series_mount_description') }}</div>
+                    </div>
+
+                    <!-- Download Directory -->
+                    <div class="setting-group">
+                        <label for="download_directory" class="setting-label">
+                            <i data-feather="download"></i>
+                            {{ t('download_directory') }}
+                        </label>
+                        <div class="input-with-button">
+                            <input type="text" 
+                                   id="download_directory" 
+                                   name="download_directory" 
+                                   value="{{ current_settings.get('download_directory', '/downloads') }}" 
+                                   class="setting-input"
+                                   placeholder="/downloads">
+                            <button type="button" 
+                                    class="browse-button" 
+                                    onclick="openFileBrowser('download_directory')"
+                                    title="{{ t('browse_folders') }}">
+                                <i data-feather="folder"></i>
+                            </button>
+                        </div>
+                        <div class="setting-description">{{ t('download_directory_description') }}</div>
+                    </div>
+
+                    <!-- Working Directory -->
+                    <div class="setting-group">
+                        <label for="working_directory" class="setting-label">
+                            <i data-feather="settings"></i>
+                            {{ t('working_directory') }}
+                        </label>
+                        <div class="input-with-button">
+                            <input type="text" 
+                                   id="working_directory" 
+                                   name="working_directory" 
+                                   value="{{ current_settings.get('working_directory', '/tmp/ai-translator') }}" 
+                                   class="setting-input"
+                                   placeholder="/tmp/ai-translator">
+                            <button type="button" 
+                                    class="browse-button" 
+                                    onclick="openFileBrowser('working_directory')"
+                                    title="{{ t('browse_folders') }}">
+                                <i data-feather="folder"></i>
+                            </button>
+                        </div>
+                        <div class="setting-description">{{ t('working_directory_description') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Remote Storage Tab -->
+        <div id="remote-storage" class="tab-content">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="cloud"></i>
+                    {{ t('remote_storage_configuration') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('remote_storage_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('remote_storage_description') }}
+                    </div>
+                </div>
+
+                <!-- Enable Remote Storage -->
+                <div class="setting-group">
+                    <label for="remote_storage_enabled" class="setting-label">
+                        <i data-feather="toggle-left"></i>
+                        {{ t('enable_remote_storage') }}
+                    </label>
+                    <select id="remote_storage_enabled" name="remote_storage_enabled" class="setting-select">
+                        <option value="true" {% if current_settings.get('remote_storage_enabled') == 'true' or current_settings.get('remote_storage_enabled') == True %}selected{% endif %}>{{ t('enabled') }}</option>
+                        <option value="false" {% if current_settings.get('remote_storage_enabled') == 'false' or current_settings.get('remote_storage_enabled') == False or not current_settings.get('remote_storage_enabled') %}selected{% endif %}>{{ t('disabled') }}</option>
+                    </select>
+                    <div class="setting-description">{{ t('remote_storage_enabled_description') }}</div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- Remote Host -->
+                    <div class="setting-group">
+                        <label for="remote_host" class="setting-label">
+                            <i data-feather="server"></i>
+                            {{ t('remote_host') }}
+                        </label>
+                        <input type="text" 
+                               id="remote_host" 
+                               name="remote_host" 
+                               value="{{ current_settings.get('remote_host', '') }}" 
+                               class="setting-input"
+                               placeholder="192.168.1.100">
+                        <div class="setting-description">{{ t('remote_host_description') }}</div>
+                    </div>
+
+                    <!-- Remote Mount Type -->
+                    <div class="setting-group">
+                        <label for="remote_mount_type" class="setting-label">
+                            <i data-feather="link"></i>
+                            {{ t('remote_mount_type') }}
+                        </label>
+                        <select id="remote_mount_type" name="remote_mount_type" class="setting-select">
+                            <option value="nfs" {% if current_settings.get('remote_mount_type') == 'nfs' %}selected{% endif %}>NFS</option>
+                            <option value="smb" {% if current_settings.get('remote_mount_type') == 'smb' %}selected{% endif %}>SMB/CIFS</option>
+                            <option value="sshfs" {% if current_settings.get('remote_mount_type') == 'sshfs' %}selected{% endif %}>SSHFS</option>
+                            <option value="ftp" {% if current_settings.get('remote_mount_type') == 'ftp' %}selected{% endif %}>FTP</option>
+                        </select>
+                        <div class="setting-description">{{ t('remote_mount_type_description') }}</div>
+                    </div>
+
+                    <!-- Remote Movies Path -->
+                    <div class="setting-group">
+                        <label for="remote_movies_path" class="setting-label">
+                            <i data-feather="film"></i>
+                            {{ t('remote_movies_path') }}
+                        </label>
+                        <div class="input-with-button">
+                            <input type="text" 
+                                   id="remote_movies_path" 
+                                   name="remote_movies_path" 
+                                   value="{{ current_settings.get('remote_movies_path', '/volume1/movies') }}" 
+                                   class="setting-input"
+                                   placeholder="/volume1/movies">
+                            <button type="button" 
+                                    class="browse-button" 
+                                    onclick="openFileBrowser('remote_movies_path')"
+                                    title="{{ t('browse_folders') }}">
+                                <i data-feather="folder"></i>
+                            </button>
+                        </div>
+                        <div class="setting-description">{{ t('remote_movies_path_description') }}</div>
+                    </div>
+
+                    <!-- Remote Series Path -->
+                    <div class="setting-group">
+                        <label for="remote_series_path" class="setting-label">
+                            <i data-feather="tv"></i>
+                            {{ t('remote_series_path') }}
+                        </label>
+                        <div class="input-with-button">
+                            <input type="text" 
+                                   id="remote_series_path" 
+                                   name="remote_series_path" 
+                                   value="{{ current_settings.get('remote_series_path', '/volume1/tv') }}" 
+                                   class="setting-input"
+                                   placeholder="/volume1/tv">
+                            <button type="button" 
+                                    class="browse-button" 
+                                    onclick="openFileBrowser('remote_series_path')"
+                                    title="{{ t('browse_folders') }}">
+                                <i data-feather="folder"></i>
+                            </button>
+                        </div>
+                        <div class="setting-description">{{ t('remote_series_path_description') }}</div>
+                    </div>
+
+                    <!-- Mount Options (v2.2.5-fixed) -->
+                    <div class="setting-group">
+                        <label for="mount_options" class="setting-label">
+                            <i data-feather="settings"></i>
+                            {{ t('mount_options') }} <small style="color: #888;">(خيارات التحميل)</small>
+                        </label>
+                        <select id="mount_options" name="mount_options" class="setting-select">
+                            <option value="defaults,noauto" {% if current_settings.get('mount_options', 'defaults,noauto') == 'defaults,noauto' %}selected{% endif %}>defaults,noauto (الافتراضي)</option>
+                            <option value="defaults,auto" {% if current_settings.get('mount_options') == 'defaults,auto' %}selected{% endif %}>defaults,auto</option>
+                            <option value="rw,noauto" {% if current_settings.get('mount_options') == 'rw,noauto' %}selected{% endif %}>rw,noauto (قراءة وكتابة)</option>
+                            <option value="ro,noauto" {% if current_settings.get('mount_options') == 'ro,noauto' %}selected{% endif %}>ro,noauto (قراءة فقط)</option>
+                            <option value="uid=1000,gid=1000,noauto" {% if current_settings.get('mount_options') == 'uid=1000,gid=1000,noauto' %}selected{% endif %}>uid=1000,gid=1000,noauto (صلاحيات المستخدم)</option>
+                            <option value="vers=3,noauto" {% if current_settings.get('mount_options') == 'vers=3,noauto' %}selected{% endif %}>vers=3,noauto (NFS الإصدار 3)</option>
+                            <option value="noperm,noauto" {% if current_settings.get('mount_options') == 'noperm,noauto' %}selected{% endif %}>noperm,noauto (بدون فحص الصلاحيات)</option>
+                        </select>
+                        <div class="setting-description">{{ t('mount_options_description') }}</div>
+                    </div>
+
+                    <!-- Authentication -->
+                    <div class="setting-group">
+                        <label for="remote_username" class="setting-label">
+                            <i data-feather="user"></i>
+                            {{ t('remote_username') }}
+                        </label>
+                        <input type="text" 
+                               id="remote_username" 
+                               name="remote_username" 
+                               value="{{ current_settings.get('remote_username', '') }}" 
+                               class="setting-input"
+                               placeholder="username">
+                        <div class="setting-description">{{ t('remote_username_description') }}</div>
+                    </div>
+
+                    <!-- Remote Password -->
+                    <div class="setting-group">
+                        <label for="remote_password" class="setting-label">
+                            <i data-feather="lock"></i>
+                            {{ t('remote_password') }}
+                        </label>
+                        <input type="password" 
+                               id="remote_password" 
+                               name="remote_password" 
+                               value="{{ current_settings.get('remote_password', '') }}" 
+                               class="setting-input"
+                               placeholder="••••••••">
+                        <div class="setting-description">{{ t('remote_password_description') }}</div>
+                    </div>
+                </div>
+
+                <!-- Remote Storage Testing -->
+                <div class="setting-group">
+                    <h4 class="subsection-title">
+                        <i data-feather="check-circle"></i>
+                        {{ t('remote_storage_testing') }}
+                    </h4>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-outline" onclick="testRemoteConnection()">
+                            <i data-feather="wifi"></i>
+                            {{ t('test_connection') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="setupRemoteMount()">
+                            <i data-feather="link"></i>
+                            {{ t('setup_mount') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="checkMountStatus()">
+                            <i data-feather="info"></i>
+                            {{ t('check_status') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i data-feather="save"></i>
+                {{ t('save_settings') }}
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+.sub-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0;
+}
+
+.sub-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-radius: 8px 8px 0 0;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    border-bottom: none;
+    position: relative;
+    bottom: -1px;
+}
+
+.sub-tab:hover {
+    color: var(--accent-primary);
+    background: var(--bg-secondary);
+}
+
+.sub-tab.active {
+    color: var(--accent-primary);
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+    border-bottom: 1px solid var(--bg-primary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.settings-grid.two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.input-with-button {
+    display: flex;
+    gap: 8px;
+}
+
+.input-with-button .setting-input {
+    flex: 1;
+}
+
+.browse-button {
+    padding: 10px 12px;
+    background: var(--accent-primary);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+}
+
+.browse-button:hover {
+    background: var(--accent-blue);
+    transform: translateY(-1px);
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.btn-outline:hover {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.subsection-title {
+    margin: 24px 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@media (max-width: 768px) {
+    .settings-grid.two-columns {
+        grid-template-columns: 1fr;
+    }
+    
+    .sub-tabs {
+        flex-direction: column;
+    }
+    
+    .sub-tab {
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 8px;
+    }
+    
+    .sub-tab.active {
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+function showPathsTab(tabId, element) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.sub-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabId).classList.add('active');
+    
+    // Add active class to clicked tab
+    element.classList.add('active');
+}
+
+// Remote storage functions
+async function testRemoteConnection() {
+    try {
+        const response = await fetch('/api/remote-mount-test', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                protocol: document.getElementById('remote_mount_type').value,
+                host: document.getElementById('remote_host').value,
+                username: document.getElementById('remote_username').value,
+                password: document.getElementById('remote_password').value,
+                path: '/',
+                port: document.getElementById('remote_mount_type').value === 'sftp' ? 22 : 
+                      document.getElementById('remote_mount_type').value === 'ftp' ? 21 : 445
+            })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            alert('✓ Connection test successful!');
+        } else {
+            alert('✗ Connection test failed: ' + (result.message || result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('✗ Connection test failed: ' + error.message);
+    }
+}
+
+async function setupRemoteMount() {
+    try {
+        const response = await fetch('/api/remote-mount-setup', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                enabled: true,
+                protocol: document.getElementById('remote_mount_type').value,
+                host: document.getElementById('remote_host').value,
+                username: document.getElementById('remote_username').value,
+                password: document.getElementById('remote_password').value,
+                path: '/',
+                port: document.getElementById('remote_mount_type').value === 'sftp' ? 22 : 
+                      document.getElementById('remote_mount_type').value === 'ftp' ? 21 : 445,
+                mount_point: '/mnt/remote',
+                auto_mount: true
+            })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            alert('✓ Remote mount setup successful!');
+        } else {
+            alert('✗ Remote mount setup failed: ' + (result.message || result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('✗ Remote mount setup failed: ' + error.message);
+    }
+}
+
+async function checkMountStatus() {
+    try {
+        const response = await fetch('/api/remote-mount-status');
+        const result = await response.json();
+        if (result.success) {
+            const mountInfo = result.mount_points || {};
+            const mountCount = Object.keys(mountInfo).length;
+            alert(`✓ Status checked - ${mountCount} remote mounts found`);
+        } else {
+            alert('✗ Status check failed: ' + (result.message || result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('✗ Status check failed: ' + error.message);
+    }
+}
+
+// Initialize page and debug dropdown issues
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Paths settings page loaded - v2.2.5-fixed');
+    
+    // Check if mount_options dropdown is properly loaded
+    const mountOptions = document.getElementById('mount_options');
+    if (mountOptions) {
+        console.log('Mount options element found:', mountOptions.tagName, 'Options count:', mountOptions.options ? mountOptions.options.length : 'N/A');
+        
+        if (mountOptions.tagName !== 'SELECT') {
+            console.error('ERROR: Mount options is not a SELECT element! It is:', mountOptions.tagName);
+            // Force reload if element is wrong type
+            setTimeout(() => {
+                console.log('Forcing page reload due to incorrect element type...');
+                window.location.reload(true);
+            }, 1000);
+        }
+    } else {
+        console.error('ERROR: Mount options element not found!');
+    }
+    
+    // Initialize Feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+});
+
+// Force cache clear on page visibility change
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        // Page became visible, check for updates
+        const mountOptions = document.getElementById('mount_options');
+        if (mountOptions && mountOptions.tagName !== 'SELECT') {
+            console.log('Detected incorrect element after visibility change, reloading...');
+            window.location.reload(true);
+        }
+    }
+});
+
+// Force check remote storage status on page load
+async function checkRemoteStorageStatus() {
+    try {
+        const response = await fetch('/api/remote-mount-status');
+        const result = await response.json();
+        console.log('Remote storage status check:', result);
+        
+        // If remote storage is disabled, force enable it
+        if (result && result.status === 'disabled') {
+            console.log('Remote storage is disabled, attempting to enable...');
+            // Force enable remote storage
+            const enableResponse = await fetch('/settings/paths', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'remote_storage_enabled=true'
+            });
+            
+            if (enableResponse.ok) {
+                console.log('Remote storage enabled successfully');
+                // Reload page to reflect changes
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        }
+    } catch (error) {
+        console.error('Error checking remote storage status:', error);
+    }
+}
+
+// Run status check after page loads
+setTimeout(checkRemoteStorageStatus, 2000);
+</script>
+{% endblock %}

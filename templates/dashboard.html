@@ -1,0 +1,258 @@
+{% extends "layout.html" %}
+{% block title %}{{ t('dashboard') }} - {{ t('app_title') }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    #status { font-size: 1.5rem; padding: 0.5rem 0; margin-bottom: 0.5rem; }
+    .flash { padding: 1rem; margin-bottom: 1rem; border-radius: 5px; color: white; text-align: center; }
+    .flash.info { background-color: var(--accent-primary); }
+    .flash.success { background-color: var(--accent-green); }
+    .flash.warning { background-color: var(--accent-yellow); }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="panel">
+    <div class="panel-header"><h2>{{ t('status_control') }}</h2></div>
+    <div id="status" class="stopped">{{ t('loading_status') }}</div>
+    <div class="progress-bar-container">
+        <div id="progress-bar"></div>
+        <div class="progress-text" id="progress-text">0%</div>
+    </div>
+    <div id="current-file">...</div>
+    <div class="main-controls">
+        <button id="startButton" class="action-btn success-btn main-action-btn" onclick="startBatchTranslation()">
+            <i data-feather="play"></i>
+            <div class="btn-text">
+                <span class="btn-title">{{ t('start_batch') }}</span>
+                <span class="btn-subtitle">{{ t('translation') }}</span>
+            </div>
+        </button>
+        <button id="stopButton" class="action-btn danger-btn main-action-btn" onclick="stopProcess()">
+            <i data-feather="stop-circle"></i>
+            <div class="btn-text">
+                <span class="btn-title">{{ t('stop') }}</span>
+                <span class="btn-subtitle">{{ t('process') }}</span>
+            </div>
+        </button>
+        <button id="scanButton" class="action-btn info-btn main-action-btn" onclick="scanTranslationStatus()">
+            <i data-feather="search"></i>
+            <div class="btn-text">
+                <span class="btn-title">{{ t('scan_translation') }}</span>
+                <span class="btn-subtitle">{{ t('status') }}</span>
+            </div>
+        </button>
+    </div>
+</div>
+<div class="panel">
+    <div class="panel-header"><h2>{{ t('latest_operation_log') }}</h2></div>
+    <div id="log-container"><pre id="log">{{ t('loading_log') }}</pre></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const statusDiv = document.getElementById('status');
+    const logDiv = document.getElementById('log');
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const currentFileDiv = document.getElementById('current-file');
+    
+    async function updateStatus() {
+        try {
+            const response = await fetch("{{ url_for('api_status') }}");
+            const data = await response.json();
+            
+            if(statusDiv) {
+                statusDiv.textContent = data.status_text;
+                statusDiv.className = data.is_running ? 'running' : 'stopped';
+            }
+            if(startButton) startButton.disabled = data.is_running;
+            if(stopButton) stopButton.disabled = !data.is_running;
+            if(progressBar) progressBar.style.width = `${data.progress}%`;
+            if(progressText) progressText.textContent = `${data.progress}%`;
+            if(currentFileDiv) currentFileDiv.textContent = data.current_file;
+            if (logDiv && logDiv.textContent !== data.log_tail) {
+                logDiv.textContent = data.log_tail;
+                logDiv.parentElement.scrollTop = logDiv.parentElement.scrollHeight;
+            }
+        } catch (error) {
+            if(statusDiv) statusDiv.textContent = 'خطأ في جلب الحالة.';
+            console.error("Status Update Error:", error);
+        }
+    }
+    setInterval(updateStatus, 3000);
+    updateStatus();
+});
+
+async function scanTranslationStatus() {
+    const scanButton = document.getElementById('scanButton');
+    const originalText = scanButton.innerHTML;
+    
+    try {
+        // Disable button and show loading state
+        scanButton.disabled = true;
+        scanButton.innerHTML = '<i data-feather="loader"></i> <div class="btn-text"><span class="btn-title">{{ t("scanning") }}...</span></div>';
+        feather.replace();
+        
+        const response = await fetch('{{ url_for("action_scan_translation_status") }}', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show success message
+            showNotification(data.message, 'success');
+        } else {
+            // Show error message
+            showNotification(data.error || '{{ t("failed_to_start_task") }}', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Scan error:', error);
+        showNotification('{{ t("failed_to_start_task") }}', 'error');
+    } finally {
+        // Re-enable button and restore original text
+        scanButton.disabled = false;
+        scanButton.innerHTML = originalText;
+        feather.replace();
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `flash ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        padding: 15px 20px;
+        border-radius: 5px;
+        color: white;
+        font-weight: bold;
+        max-width: 300px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    `;
+    
+    // Set background color based on type
+    switch(type) {
+        case 'success':
+            notification.style.backgroundColor = 'var(--accent-green)';
+            break;
+        case 'error':
+            notification.style.backgroundColor = 'var(--accent-red)';
+            break;
+        case 'warning':
+            notification.style.backgroundColor = 'var(--accent-yellow)';
+            break;
+        default:
+            notification.style.backgroundColor = 'var(--accent-primary)';
+    }
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 5000);
+}
+
+async function startBatchTranslation() {
+    const startButton = document.getElementById('startButton');
+    const originalText = startButton.innerHTML;
+    
+    try {
+        // Disable button and show loading state
+        startButton.disabled = true;
+        startButton.innerHTML = '<i data-feather="loader"></i> {{ t("starting") }}...';
+        feather.replace();
+        
+        const response = await fetch('{{ url_for("action_start_batch") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show success message
+            showNotification(data.message, 'success');
+        } else {
+            // Show error message
+            showNotification(data.error || '{{ t("failed_to_start_task") }}', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Start batch error:', error);
+        showNotification('{{ t("failed_to_start_task") }}', 'error');
+    } finally {
+        // Re-enable button and restore original text
+        startButton.disabled = false;
+        startButton.innerHTML = originalText;
+        feather.replace();
+    }
+}
+
+async function stopProcess() {
+    const stopButton = document.getElementById('stopButton');
+    const originalText = stopButton.innerHTML;
+    
+    try {
+        // Disable button and show loading state
+        stopButton.disabled = true;
+        stopButton.innerHTML = '<i data-feather="loader"></i> {{ t("stopping") }}...';
+        feather.replace();
+        
+        const response = await fetch('{{ url_for("action_stop") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show success message
+            showNotification(data.message, 'success');
+        } else {
+            // Show error message
+            showNotification(data.error || '{{ t("failed_to_stop_task") }}', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Stop process error:', error);
+        showNotification('{{ t("failed_to_stop_task") }}', 'error');
+    } finally {
+        // Re-enable button and restore original text
+        stopButton.disabled = false;
+        stopButton.innerHTML = originalText;
+        feather.replace();
+    }
+}
+</script>
+{% endblock %}

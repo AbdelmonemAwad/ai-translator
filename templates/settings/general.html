@@ -1,0 +1,369 @@
+{% extends "settings/layout.html" %}
+
+{% block title %}{{ t('general_settings') }}{% endblock %}
+
+{% block settings_content %}
+<div class="settings-content">
+    <div class="settings-header">
+        <div class="header-icon">
+            <i data-feather="settings"></i>
+        </div>
+        <div class="header-content">
+            <h2>{{ t('general_settings') }}</h2>
+            <p>{{ t('general_settings_description') }}</p>
+        </div>
+    </div>
+
+    <!-- Sub-tabs for General section -->
+    <div class="sub-tabs">
+        <a href="#interface" class="sub-tab active" onclick="showGeneralTab('interface', this)">
+            <i data-feather="monitor"></i>
+            {{ t('interface_settings') }}
+        </a>
+        <a href="#authentication" class="sub-tab" onclick="showGeneralTab('authentication', this)">
+            <i data-feather="shield"></i>
+            {{ t('authentication_settings') }}
+        </a>
+        <a href="#processing" class="sub-tab" onclick="showGeneralTab('processing', this)">
+            <i data-feather="cpu"></i>
+            {{ t('processing_settings') }}
+        </a>
+    </div>
+
+    <form method="post" action="{{ url_for('settings_general') }}">
+        <!-- Interface Tab -->
+        <div id="interface" class="tab-content active">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="monitor"></i>
+                    {{ t('interface_settings') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('interface_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('interface_description') }}
+                    </div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- User Language -->
+                    <div class="setting-group">
+                        <label for="user_language" class="setting-label">
+                            <i data-feather="globe"></i>
+                            {{ t('user_language') }}
+                        </label>
+                        <select id="user_language" name="user_language" class="setting-select">
+                            <option value="ar" {% if current_settings.get('user_language') == 'ar' %}selected{% endif %}>{{ t('arabic') }}</option>
+                            <option value="en" {% if current_settings.get('user_language') == 'en' %}selected{% endif %}>{{ t('english') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('user_language_description') }}</div>
+                    </div>
+
+                    <!-- User Theme -->
+                    <div class="setting-group">
+                        <label for="user_theme" class="setting-label">
+                            <i data-feather="eye"></i>
+                            {{ t('user_theme') }}
+                        </label>
+                        <select id="user_theme" name="user_theme" class="setting-select">
+                            <option value="dark" {% if current_settings.get('user_theme') == 'dark' %}selected{% endif %}>{{ t('dark_theme') }}</option>
+                            <option value="light" {% if current_settings.get('user_theme') == 'light' %}selected{% endif %}>{{ t('light_theme') }}</option>
+                            <option value="auto" {% if current_settings.get('user_theme') == 'auto' %}selected{% endif %}>{{ t('auto_theme') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('user_theme_description') }}</div>
+                    </div>
+
+                    <!-- Items Per Page -->
+                    <div class="setting-group">
+                        <label for="items_per_page" class="setting-label">
+                            <i data-feather="list"></i>
+                            {{ t('items_per_page') }}
+                        </label>
+                        <select id="items_per_page" name="items_per_page" class="setting-select">
+                            <option value="12" {% if current_settings.get('items_per_page') == '12' %}selected{% endif %}>12</option>
+                            <option value="24" {% if current_settings.get('items_per_page') == '24' %}selected{% endif %}>24</option>
+                            <option value="48" {% if current_settings.get('items_per_page') == '48' %}selected{% endif %}>48</option>
+                            <option value="96" {% if current_settings.get('items_per_page') == '96' %}selected{% endif %}>96</option>
+                        </select>
+                        <div class="setting-description">{{ t('items_per_page_description') }}</div>
+                    </div>
+
+                    <!-- Auto Refresh -->
+                    <div class="setting-group">
+                        <label for="auto_refresh" class="setting-label">
+                            <i data-feather="refresh-cw"></i>
+                            {{ t('auto_refresh') }}
+                        </label>
+                        <select id="auto_refresh" name="auto_refresh" class="setting-select">
+                            <option value="true" {% if current_settings.get('auto_refresh') == 'true' %}selected{% endif %}>{{ t('yes') }}</option>
+                            <option value="false" {% if current_settings.get('auto_refresh') != 'true' %}selected{% endif %}>{{ t('no') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('auto_refresh_description') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Authentication Tab -->
+        <div id="authentication" class="tab-content">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="shield"></i>
+                    {{ t('authentication_settings') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('authentication_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('authentication_description') }}
+                    </div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- Admin Username -->
+                    <div class="setting-group">
+                        <label for="admin_username" class="setting-label">
+                            <i data-feather="user"></i>
+                            {{ t('admin_username') }}
+                        </label>
+                        <input type="text" 
+                               id="admin_username" 
+                               name="admin_username" 
+                               value="{{ current_settings.get('admin_username', 'admin') }}" 
+                               class="setting-input"
+                               placeholder="admin">
+                        <div class="setting-description">{{ t('admin_username_description') }}</div>
+                    </div>
+
+                    <!-- Admin Password -->
+                    <div class="setting-group">
+                        <label for="admin_password" class="setting-label">
+                            <i data-feather="lock"></i>
+                            {{ t('admin_password') }}
+                        </label>
+                        <input type="password" 
+                               id="admin_password" 
+                               name="admin_password" 
+                               value="{{ current_settings.get('admin_password', '') }}" 
+                               class="setting-input"
+                               placeholder="••••••••">
+                        <div class="setting-description">{{ t('admin_password_description') }}</div>
+                    </div>
+
+                    <!-- Session Timeout -->
+                    <div class="setting-group">
+                        <label for="session_timeout" class="setting-label">
+                            <i data-feather="clock"></i>
+                            {{ t('session_timeout') }}
+                        </label>
+                        <select id="session_timeout" name="session_timeout" class="setting-select">
+                            <option value="1800" {% if current_settings.get('session_timeout') == '1800' %}selected{% endif %}>30 {{ t('minutes') }}</option>
+                            <option value="3600" {% if current_settings.get('session_timeout') == '3600' %}selected{% endif %}>1 {{ t('hour') }}</option>
+                            <option value="7200" {% if current_settings.get('session_timeout') == '7200' %}selected{% endif %}>2 {{ t('hours') }}</option>
+                            <option value="86400" {% if current_settings.get('session_timeout') == '86400' %}selected{% endif %}>24 {{ t('hours') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('session_timeout_description') }}</div>
+                    </div>
+
+                    <!-- Remember Me -->
+                    <div class="setting-group">
+                        <label for="remember_me_enabled" class="setting-label">
+                            <i data-feather="check-square"></i>
+                            {{ t('remember_me') }}
+                        </label>
+                        <select id="remember_me_enabled" name="remember_me_enabled" class="setting-select">
+                            <option value="true" {% if current_settings.get('remember_me_enabled') == 'true' %}selected{% endif %}>{{ t('yes') }}</option>
+                            <option value="false" {% if current_settings.get('remember_me_enabled') != 'true' %}selected{% endif %}>{{ t('no') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('remember_me_description') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing Tab -->
+        <div id="processing" class="tab-content">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="cpu"></i>
+                    {{ t('processing_settings') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('processing_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('processing_description') }}
+                    </div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- Max Concurrent Tasks -->
+                    <div class="setting-group">
+                        <label for="max_concurrent_tasks" class="setting-label">
+                            <i data-feather="layers"></i>
+                            {{ t('max_concurrent_tasks') }}
+                        </label>
+                        <select id="max_concurrent_tasks" name="max_concurrent_tasks" class="setting-select">
+                            <option value="1" {% if current_settings.get('max_concurrent_tasks') == '1' %}selected{% endif %}>1</option>
+                            <option value="2" {% if current_settings.get('max_concurrent_tasks') == '2' %}selected{% endif %}>2</option>
+                            <option value="4" {% if current_settings.get('max_concurrent_tasks') == '4' %}selected{% endif %}>4</option>
+                            <option value="8" {% if current_settings.get('max_concurrent_tasks') == '8' %}selected{% endif %}>8</option>
+                        </select>
+                        <div class="setting-description">{{ t('max_concurrent_tasks_description') }}</div>
+                    </div>
+
+                    <!-- Auto Correct Filenames -->
+                    <div class="setting-group">
+                        <label for="auto_correct_filenames" class="setting-label">
+                            <i data-feather="edit"></i>
+                            {{ t('auto_correct_filenames') }}
+                        </label>
+                        <select id="auto_correct_filenames" name="auto_correct_filenames" class="setting-select">
+                            <option value="true" {% if current_settings.get('auto_correct_filenames') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('auto_correct_filenames') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('auto_correct_filenames_description') }}</div>
+                    </div>
+
+                    <!-- Enable Logging -->
+                    <div class="setting-group">
+                        <label for="enable_logging" class="setting-label">
+                            <i data-feather="file-text"></i>
+                            {{ t('enable_logging') }}
+                        </label>
+                        <select id="enable_logging" name="enable_logging" class="setting-select">
+                            <option value="true" {% if current_settings.get('enable_logging') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('enable_logging') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('enable_logging_description') }}</div>
+                    </div>
+
+                    <!-- Log Level -->
+                    <div class="setting-group">
+                        <label for="log_level" class="setting-label">
+                            <i data-feather="activity"></i>
+                            {{ t('log_level') }}
+                        </label>
+                        <select id="log_level" name="log_level" class="setting-select">
+                            <option value="DEBUG" {% if current_settings.get('log_level') == 'DEBUG' %}selected{% endif %}>DEBUG</option>
+                            <option value="INFO" {% if current_settings.get('log_level') == 'INFO' %}selected{% endif %}>INFO</option>
+                            <option value="WARNING" {% if current_settings.get('log_level') == 'WARNING' %}selected{% endif %}>WARNING</option>
+                            <option value="ERROR" {% if current_settings.get('log_level') == 'ERROR' %}selected{% endif %}>ERROR</option>
+                        </select>
+                        <div class="setting-description">{{ t('log_level_description') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i data-feather="save"></i>
+                {{ t('save_settings') }}
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+.sub-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0;
+}
+
+.sub-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-radius: 8px 8px 0 0;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    border-bottom: none;
+    position: relative;
+    bottom: -1px;
+}
+
+.sub-tab:hover {
+    color: var(--accent-primary);
+    background: var(--bg-secondary);
+}
+
+.sub-tab.active {
+    color: var(--accent-primary);
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+    border-bottom: 1px solid var(--bg-primary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.settings-grid.two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .settings-grid.two-columns {
+        grid-template-columns: 1fr;
+    }
+    
+    .sub-tabs {
+        flex-direction: column;
+    }
+    
+    .sub-tab {
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 8px;
+    }
+    
+    .sub-tab.active {
+        border-bottom: 1px solid var(--border-color);
+    }
+}
+</style>
+
+<script>
+function showGeneralTab(tabId, element) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.sub-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabId).classList.add('active');
+    
+    // Add active class to clicked tab
+    element.classList.add('active');
+}
+</script>
+{% endblock %}

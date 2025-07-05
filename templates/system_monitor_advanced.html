@@ -1,0 +1,1191 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ t('system_monitor') }} - {{ t('app_title') }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* System Monitor Advanced Styles - Enhanced Design V2.0 - Professional Update Applied */
+    .system-monitor-container {
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .monitor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 25px 30px;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+        border: 1px solid rgba(79, 209, 197, 0.3);
+        border-radius: 20px;
+        color: white;
+        box-shadow: 0 12px 25px rgba(0,0,0,0.4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .monitor-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(79, 209, 197, 0.1), transparent);
+        animation: headerShine 3s infinite;
+    }
+
+    @keyframes headerShine {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.4), 0 8px 16px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .monitor-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(79, 209, 197, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+        pointer-events: none;
+    }
+
+    .monitor-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .monitor-controls {
+        display: flex;
+        gap: 15px;
+    }
+
+    .control-btn {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        text-decoration: none;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-weight: 600;
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .control-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .control-btn:hover::before {
+        left: 100%;
+    }
+
+    .control-btn:hover {
+        background: linear-gradient(135deg, #6366f1 0%, #0891b2 100%);
+        transform: translateY(-6px) scale(1.05);
+        color: white;
+        box-shadow: 0 12px 30px rgba(79, 70, 229, 0.5);
+    }
+
+    .control-btn.active {
+        background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+        box-shadow: 0 0 25px rgba(5, 150, 105, 0.5);
+        transform: translateY(-2px);
+    }
+
+    /* Stats Grid Layout */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    
+    @media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+    }
+
+    .stat-card {
+        background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+        border-radius: 24px;
+        padding: 32px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 8px 20px rgba(0,0,0,0.15);
+        border: 1px solid rgba(79, 209, 197, 0.2);
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-12px) scale(1.03);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.4), 0 15px 30px rgba(79, 209, 197, 0.3);
+        border-color: rgba(79, 209, 197, 0.6);
+        background: linear-gradient(145deg, #334155 0%, #1e293b 100%);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #4299e1, #667eea, #764ba2);
+        border-radius: 15px 15px 0 0;
+    }
+
+    .stat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .stat-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 18px;
+        font-weight: 600;
+        color: #e2e8f0;
+    }
+
+    .stat-icon {
+        width: 24px;
+        height: 24px;
+        color: #4299e1;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #4299e1;
+        margin-bottom: 10px;
+    }
+
+    .stat-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .detail-label {
+        color: #a0aec0;
+    }
+
+    .detail-value {
+        color: #e2e8f0;
+        font-weight: 600;
+    }
+
+    /* Progress Bars */
+    .progress-container {
+        margin: 15px 0;
+    }
+
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #a0aec0;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 12px;
+        background: rgba(15, 23, 42, 0.8);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4299e1, #667eea);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+        position: relative;
+    }
+
+    .progress-fill.warning {
+        background: linear-gradient(90deg, #ed8936, #f6ad55);
+    }
+
+    .progress-fill.critical {
+        background: linear-gradient(90deg, #e53e3e, #fc8181);
+    }
+
+    /* System Health Status */
+    .health-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+
+    .health-status.healthy {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(72, 187, 120, 0.1) 100%);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #10b981;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+
+    .health-status.warning {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(237, 137, 54, 0.1) 100%);
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        color: #f59e0b;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+    }
+
+    .health-status.critical {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(229, 62, 62, 0.1) 100%);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        color: #ef4444;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    }
+
+    /* Process List */
+    .process-table {
+        width: 100%;
+        background: #2d3748;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .process-table th {
+        background: #4a5568;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #e2e8f0;
+        border-bottom: 1px solid #718096;
+    }
+
+    .process-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        color: #a0aec0;
+    }
+
+    .process-table tr:hover {
+        background: rgba(255,255,255,0.05);
+    }
+
+    /* Charts Container */
+    .charts-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+        margin: 30px 0;
+    }
+
+    .chart-card {
+        background: #2d3748;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        border: 1px solid #4a5568;
+    }
+
+    .chart-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Real-time Updates */
+    .last-update {
+        color: #a0aec0;
+        font-size: 12px;
+        text-align: center;
+        margin-top: 20px;
+        padding: 10px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 8px;
+    }
+
+    /* Loading Animation */
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #4299e1;
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* GPU and Storage Styles */
+    .gpu-status, .storage-devices {
+        margin-top: 20px;
+    }
+    
+    .gpu-card, .storage-device {
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .gpu-card:hover, .storage-device:hover {
+        background: rgba(255,255,255,0.08);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    
+    .gpu-header, .device-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .gpu-name, .mount-point {
+        font-weight: 600;
+        color: #4fc3f7;
+        font-size: 1.1em;
+    }
+    
+    .gpu-id, .device-name {
+        background: rgba(66, 153, 225, 0.2);
+        color: #4fc3f7;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 500;
+    }
+    
+    .gpu-stats .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 12px 0;
+    }
+    
+    .progress-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+        margin-left: 15px;
+    }
+    
+    .progress-bar {
+        flex: 1;
+        height: 12px;
+        background: rgba(15, 23, 42, 0.8);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%);
+        border-radius: 8px;
+        transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+        position: relative;
+    }
+
+    .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .temperature {
+        color: #ff9800;
+        font-weight: 600;
+    }
+    
+    .usage-bar {
+        height: 10px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 5px;
+        overflow: hidden;
+        margin: 8px 0;
+    }
+    
+    .usage-fill {
+        height: 100%;
+        border-radius: 5px;
+        transition: width 0.3s ease;
+    }
+    
+    .usage-bar.normal .usage-fill {
+        background: linear-gradient(90deg, #4caf50, #66bb6a);
+    }
+    
+    .usage-bar.warning .usage-fill {
+        background: linear-gradient(90deg, #ff9800, #ffb74d);
+    }
+    
+    .usage-bar.critical .usage-fill {
+        background: linear-gradient(90deg, #f44336, #ef5350);
+    }
+    
+    .usage-text {
+        text-align: center;
+        font-weight: 600;
+        color: #e0e0e0;
+        margin: 5px 0;
+    }
+    
+    .device-details {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9em;
+        color: #b0b0b0;
+        margin-top: 10px;
+    }
+    
+    .gpu-status.unavailable {
+        text-align: center;
+        padding: 30px;
+        opacity: 0.7;
+    }
+    
+    .gpu-status.unavailable p {
+        color: #ffab91;
+        margin: 10px 0;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .charts-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .monitor-header {
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+        }
+        
+        .monitor-controls {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="system-monitor-container">
+    <!-- Header Section -->
+    <div class="monitor-header">
+        <div>
+            <h2>
+                <i data-feather="activity" style="margin-right: 10px;"></i>
+                {{ t('advanced_system_monitor') }}
+            </h2>
+            <p style="margin: 5px 0 0 0; opacity: 0.9;">{{ t('realtime_system_monitoring') }}</p>
+        </div>
+        <div class="monitor-controls">
+            <a href="/system-monitor" class="control-btn" style="background: linear-gradient(135deg, #059669 0%, #0891b2 100%);">
+                <i data-feather="arrow-left"></i> {{ t('standard_monitor') }}
+            </a>
+            <a href="#" class="control-btn" onclick="refreshSystemData()">
+                <i data-feather="refresh-cw"></i> {{ t('refresh') }}
+            </a>
+            <a href="#" class="control-btn" onclick="exportSystemStats()">
+                <i data-feather="download"></i> {{ t('export') }}
+            </a>
+            <a href="#" class="control-btn" onclick="toggleAutoRefresh()">
+                <i data-feather="play"></i> <span id="auto-refresh-text">{{ t('auto_refresh') }}</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- System Health Status -->
+    <div id="health-status" class="health-status healthy">
+        <div class="loading"></div>
+        <span>{{ t('loading_system_health') }}...</span>
+    </div>
+
+    <!-- Main Stats Grid -->
+    <div class="stats-grid">
+        <!-- CPU Stats -->
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">
+                    <i data-feather="cpu" class="stat-icon"></i>
+                    {{ t('cpu_usage') }}
+                </div>
+            </div>
+            <div class="stat-value" id="cpu-usage">--</div>
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span>{{ t('utilization') }}</span>
+                    <span id="cpu-percent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="cpu-progress"></div>
+                </div>
+            </div>
+            <div class="stat-details" id="cpu-details">
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('cores') }}</span>
+                    <span class="detail-value" id="cpu-cores">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('frequency') }}</span>
+                    <span class="detail-value" id="cpu-freq">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('temperature') }}</span>
+                    <span class="detail-value" id="cpu-temp">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('load_average') }}</span>
+                    <span class="detail-value" id="cpu-load">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory Stats -->
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">
+                    <i data-feather="hard-drive" class="stat-icon"></i>
+                    {{ t('memory_usage') }}
+                </div>
+            </div>
+            <div class="stat-value" id="memory-usage">--</div>
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span>{{ t('utilization') }}</span>
+                    <span id="memory-percent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="memory-progress"></div>
+                </div>
+            </div>
+            <div class="stat-details" id="memory-details">
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('total') }}</span>
+                    <span class="detail-value" id="memory-total">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('used') }}</span>
+                    <span class="detail-value" id="memory-used">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('available') }}</span>
+                    <span class="detail-value" id="memory-available">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('swap') }}</span>
+                    <span class="detail-value" id="memory-swap">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Storage Stats -->
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">
+                    <i data-feather="database" class="stat-icon"></i>
+                    {{ t('storage_usage') }}
+                </div>
+            </div>
+            <div class="stat-value" id="storage-usage">--</div>
+            <div id="storage-devices"></div>
+        </div>
+
+        <!-- Network Stats -->
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-title">
+                    <i data-feather="wifi" class="stat-icon"></i>
+                    {{ t('network_activity') }}
+                </div>
+            </div>
+            <div class="stat-details" id="network-details">
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('bytes_sent') }}</span>
+                    <span class="detail-value" id="network-sent">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('bytes_received') }}</span>
+                    <span class="detail-value" id="network-recv">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('packets_sent') }}</span>
+                    <span class="detail-value" id="network-packets-sent">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('packets_received') }}</span>
+                    <span class="detail-value" id="network-packets-recv">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-title">
+                <i data-feather="info" class="stat-icon"></i>
+                {{ t('system_information') }}
+            </div>
+        </div>
+        <div class="stat-details" id="system-info">
+            <!-- Will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- GPU Information -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-title">
+                <i data-feather="monitor" class="stat-icon"></i>
+                {{ t('gpu_status') }}
+            </div>
+        </div>
+        <div id="gpu-info" class="gpu-info">
+            <!-- GPU information will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Storage Information -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-title">
+                <i data-feather="hard-drive" class="stat-icon"></i>
+                {{ t('storage_devices') }}
+            </div>
+        </div>
+        <div id="storage-info" class="storage-info">
+            <!-- Storage information will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Top Processes -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-title">
+                <i data-feather="list" class="stat-icon"></i>
+                {{ t('top_processes') }}
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="process-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('process_name') }}</th>
+                        <th>{{ t('cpu_usage') }}</th>
+                        <th>{{ t('memory_usage') }}</th>
+                        <th>{{ t('status') }}</th>
+                    </tr>
+                </thead>
+                <tbody id="process-list">
+                    <!-- Will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Last Update Info -->
+    <div class="last-update" id="last-update">
+        {{ t('loading') }}...
+    </div>
+</div>
+
+<script>
+let autoRefreshInterval = null;
+let isAutoRefreshEnabled = false;
+
+// تحديث الإحصائيات
+async function updateSystemStats() {
+    try {
+        // إظهار مؤشر التحميل
+        const healthStatus = document.getElementById('health-status');
+        if (healthStatus) {
+            healthStatus.innerHTML = '<div class="loading"></div><span>{{ t("loading") }}...</span>';
+            healthStatus.className = 'health-status healthy';
+        }
+        
+        // جلب الإحصائيات المتطورة
+        const response = await fetch('/api/advanced-system-monitor');
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'خطأ غير معروف');
+        }
+        
+        const data = result.data;
+        
+        // تحديث إحصائيات المعالج
+        if (data.cpu_percent !== undefined || data.cpu) {
+            const cpuData = data.cpu || {
+                usage_percent: data.cpu_percent,
+                cores: navigator.hardwareConcurrency || 4
+            };
+            updateCPUStats(cpuData);
+        }
+        
+        // تحديث إحصائيات الذاكرة
+        if (data.ram_percent !== undefined) {
+            updateMemoryStats({
+                percent: data.ram_percent,
+                used: data.ram_used_gb * 1024 * 1024 * 1024,
+                total: data.ram_total_gb * 1024 * 1024 * 1024,
+                available: (data.ram_total_gb - data.ram_used_gb) * 1024 * 1024 * 1024
+            });
+        } else if (data.memory) {
+            updateMemoryStats(data.memory);
+        }
+        
+        // تحديث إحصائيات الشبكة
+        if (data.network) updateNetworkStats(data.network);
+        
+        // تحديث بيانات كروت الشاشة
+        if (data.gpu) updateGPUStats(data.gpu);
+        
+        // تحديث بيانات أجهزة التخزين
+        if (data.disk) updateStorageStats(data.disk);
+        
+        // تحديث معلومات النظام والعمليات وصحة النظام
+        await Promise.all([
+            updateSystemInfo(),
+            updateProcessList(),
+            updateSystemHealth()
+        ]);
+        
+        // تحديث وقت آخر تحديث
+        const lastUpdateElement = document.getElementById('last-update');
+        if (lastUpdateElement) {
+            lastUpdateElement.textContent = 
+                `{{ t('last_update') }}: ${new Date().toLocaleString('{{ get_user_language() }}')}`;
+        }
+            
+    } catch (error) {
+        console.error('خطأ في تحديث الإحصائيات:', error);
+        showError('فشل في تحديث إحصائيات النظام: ' + error.message);
+        
+        // إعادة تعيين حالة الصحة عند الخطأ
+        const healthStatus = document.getElementById('health-status');
+        if (healthStatus) {
+            healthStatus.className = 'health-status critical';
+            healthStatus.innerHTML = '<i data-feather="alert-circle"></i><span>خطأ في النظام</span>';
+            feather.replace();
+        }
+    }
+}
+
+function updateCPUStats(cpu) {
+    const cpuUsage = Math.round(cpu.usage_percent || 0);
+    
+    document.getElementById('cpu-usage').textContent = cpuUsage + '%';
+    document.getElementById('cpu-percent').textContent = cpuUsage + '%';
+    
+    const progressBar = document.getElementById('cpu-progress');
+    progressBar.style.width = cpuUsage + '%';
+    
+    // تغيير لون التقدم حسب الاستخدام
+    if (cpuUsage > 80) {
+        progressBar.className = 'progress-fill critical';
+    } else if (cpuUsage > 60) {
+        progressBar.className = 'progress-fill warning';
+    } else {
+        progressBar.className = 'progress-fill';
+    }
+    
+    // تحديث التفاصيل
+    if (cpu.load_average && cpu.load_average.length > 0) {
+        document.getElementById('cpu-load').textContent = cpu.load_average[0].toFixed(2);
+    }
+    
+    if (cpu.temperature) {
+        document.getElementById('cpu-temp').textContent = Math.round(cpu.temperature) + '°C';
+    }
+}
+
+function updateMemoryStats(memory) {
+    const memoryPercent = Math.round(memory.percent || 0);
+    
+    document.getElementById('memory-usage').textContent = memoryPercent + '%';
+    document.getElementById('memory-percent').textContent = memoryPercent + '%';
+    
+    const progressBar = document.getElementById('memory-progress');
+    progressBar.style.width = memoryPercent + '%';
+    
+    // تغيير لون التقدم حسب الاستخدام
+    if (memoryPercent > 85) {
+        progressBar.className = 'progress-fill critical';
+    } else if (memoryPercent > 70) {
+        progressBar.className = 'progress-fill warning';
+    } else {
+        progressBar.className = 'progress-fill';
+    }
+    
+    // تحديث التفاصيل
+    document.getElementById('memory-total').textContent = formatBytes(memory.total);
+    document.getElementById('memory-used').textContent = formatBytes(memory.used);
+    document.getElementById('memory-available').textContent = formatBytes(memory.available);
+    document.getElementById('memory-swap').textContent = formatBytes(memory.swap?.used || 0);
+}
+
+function updateNetworkStats(network) {
+    document.getElementById('network-sent').textContent = formatBytes(network.bytes_sent);
+    document.getElementById('network-recv').textContent = formatBytes(network.bytes_recv);
+    document.getElementById('network-packets-sent').textContent = network.packets_sent?.toLocaleString() || '0';
+    document.getElementById('network-packets-recv').textContent = network.packets_recv?.toLocaleString() || '0';
+}
+
+function updateGPUStats(gpu) {
+    const gpuContainer = document.getElementById('gpu-info');
+    if (!gpuContainer) return;
+    
+    if (gpu.available && gpu.gpus && gpu.gpus.length > 0) {
+        let gpuHtml = `<div class="gpu-status available">
+            <h4><i data-feather="gpu"></i> كروت الرسومات المتاحة (${gpu.gpus.length})</h4>`;
+        
+        gpu.gpus.forEach((card, index) => {
+            const memoryPercent = card.memory_total > 0 ? 
+                Math.round((card.memory_used / card.memory_total) * 100) : 0;
+            
+            gpuHtml += `
+                <div class="gpu-card">
+                    <div class="gpu-header">
+                        <span class="gpu-name">${card.name}</span>
+                        <span class="gpu-id">GPU ${card.id}</span>
+                    </div>
+                    <div class="gpu-stats">
+                        <div class="stat-item">
+                            <label>الاستخدام:</label>
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${card.utilization}%"></div>
+                                </div>
+                                <span>${card.utilization}%</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <label>الذاكرة:</label>
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${memoryPercent}%"></div>
+                                </div>
+                                <span>${card.memory_used} / ${card.memory_total} MB</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <label>درجة الحرارة:</label>
+                            <span class="temperature">${card.temperature}°C</span>
+                        </div>
+                    </div>
+                </div>`;
+        });
+        
+        gpuHtml += '</div>';
+        gpuContainer.innerHTML = gpuHtml;
+    } else {
+        gpuContainer.innerHTML = `
+            <div class="gpu-status unavailable">
+                <h4><i data-feather="alert-circle"></i> كروت الرسومات</h4>
+                <p>لا توجد كروت رسومات متاحة أو غير مدعومة</p>
+            </div>`;
+    }
+    
+    feather.replace();
+}
+
+function updateStorageStats(disk) {
+    const storageContainer = document.getElementById('storage-info');
+    if (!storageContainer) return;
+    
+    let storageHtml = '<div class="storage-devices"><h4><i data-feather="hard-drive"></i> أجهزة التخزين</h4>';
+    
+    Object.keys(disk).forEach(mount => {
+        const device = disk[mount];
+        if (!device.error) {
+            const usageClass = device.percent > 90 ? 'critical' : device.percent > 75 ? 'warning' : 'normal';
+            
+            storageHtml += `
+                <div class="storage-device">
+                    <div class="device-header">
+                        <span class="mount-point">${mount}</span>
+                        <span class="device-name">${device.device || 'Unknown'}</span>
+                    </div>
+                    <div class="device-stats">
+                        <div class="usage-bar ${usageClass}">
+                            <div class="usage-fill" style="width: ${device.percent}%"></div>
+                        </div>
+                        <div class="usage-text">
+                            ${formatGigabytes(device.used)} / ${formatGigabytes(device.total)} (${device.percent}%)
+                        </div>
+                        <div class="device-details">
+                            <span>النوع: ${device.filesystem || 'Unknown'}</span>
+                            <span>متاح: ${formatGigabytes(device.free || (device.total - device.used))}</span>
+                        </div>
+                    </div>
+                </div>`;
+        }
+    });
+    
+    storageHtml += '</div>';
+    storageContainer.innerHTML = storageHtml;
+}
+
+async function updateSystemInfo() {
+    try {
+        const response = await fetch('/api/system-info-detailed');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            const info = result.data;
+            const container = document.getElementById('system-info');
+            
+            container.innerHTML = `
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('hostname') }}</span>
+                    <span class="detail-value">${info.os?.hostname || 'Unknown'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('operating_system') }}</span>
+                    <span class="detail-value">${info.os?.name || 'Unknown'} ${info.os?.release || ''}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('architecture') }}</span>
+                    <span class="detail-value">${info.os?.architecture || 'Unknown'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('uptime') }}</span>
+                    <span class="detail-value">${info.os?.uptime || 'Unknown'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('cpu_name') }}</span>
+                    <span class="detail-value">${info.cpu?.name || 'Unknown CPU'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">{{ t('memory_type') }}</span>
+                    <span class="detail-value">${info.memory?.type || 'Unknown'}</span>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('خطأ في تحديث معلومات النظام:', error);
+    }
+}
+
+async function updateProcessList() {
+    try {
+        const response = await fetch('/api/system-processes?limit=10');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            const tbody = document.getElementById('process-list');
+            tbody.innerHTML = '';
+            
+            result.data.forEach(process => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${process.name || 'Unknown'}</td>
+                    <td>${(process.cpu_percent || 0).toFixed(1)}%</td>
+                    <td>${(process.memory_percent || 0).toFixed(1)}%</td>
+                    <td>${process.status || 'Unknown'}</td>
+                `;
+            });
+        }
+    } catch (error) {
+        console.error('خطأ في تحديث قائمة العمليات:', error);
+    }
+}
+
+async function updateSystemHealth() {
+    try {
+        const response = await fetch('/api/system-health');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            const health = result.data;
+            const statusElement = document.getElementById('health-status');
+            
+            statusElement.className = `health-status ${health.overall_status}`;
+            
+            let statusText = '';
+            let statusIcon = '';
+            
+            switch (health.overall_status) {
+                case 'healthy':
+                    statusText = '{{ t("system_healthy") }}';
+                    statusIcon = 'check-circle';
+                    break;
+                case 'warning':
+                    statusText = '{{ t("system_warning") }}';
+                    statusIcon = 'alert-triangle';
+                    break;
+                case 'critical':
+                    statusText = '{{ t("system_critical") }}';
+                    statusIcon = 'alert-circle';
+                    break;
+                default:
+                    statusText = '{{ t("system_unknown") }}';
+                    statusIcon = 'help-circle';
+            }
+            
+            statusElement.innerHTML = `
+                <i data-feather="${statusIcon}"></i>
+                <span>${statusText} - {{ t("score") }}: ${health.score}/100</span>
+            `;
+            
+            // إعادة تحديث الأيقونات
+            feather.replace();
+        }
+    } catch (error) {
+        console.error('خطأ في تحديث صحة النظام:', error);
+    }
+}
+
+// وظائف المساعدة
+function formatBytes(bytes) {
+    if (bytes === 0 || bytes === null || bytes === undefined) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function formatGigabytes(gb) {
+    if (gb === 0 || gb === null || gb === undefined) return '0 GB';
+    if (gb < 1) {
+        return (gb * 1024).toFixed(0) + ' MB';
+    }
+    return gb.toFixed(1) + ' GB';
+}
+
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'health-status critical';
+    errorDiv.innerHTML = `<i data-feather="alert-circle"></i><span>${message}</span>`;
+    
+    const container = document.querySelector('.system-monitor-container');
+    container.insertBefore(errorDiv, container.firstChild);
+    
+    feather.replace();
+    
+    setTimeout(() => errorDiv.remove(), 5000);
+}
+
+// وظائف التحكم
+function refreshSystemData() {
+    updateSystemStats();
+}
+
+function toggleAutoRefresh() {
+    const textElement = document.getElementById('auto-refresh-text');
+    const buttonElement = document.querySelector('.control-btn[onclick="toggleAutoRefresh()"]');
+    const iconElement = buttonElement ? buttonElement.querySelector('i') : null;
+    
+    if (isAutoRefreshEnabled) {
+        clearInterval(autoRefreshInterval);
+        isAutoRefreshEnabled = false;
+        if (textElement) textElement.textContent = '{{ t("auto_refresh") }}';
+        if (iconElement) iconElement.setAttribute('data-feather', 'play');
+        if (buttonElement) buttonElement.classList.remove('active');
+    } else {
+        autoRefreshInterval = setInterval(updateSystemStats, 5000);
+        isAutoRefreshEnabled = true;
+        if (textElement) textElement.textContent = '{{ t("stop_refresh") }}';
+        if (iconElement) iconElement.setAttribute('data-feather', 'pause');
+        if (buttonElement) buttonElement.classList.add('active');
+    }
+    feather.replace();
+}
+
+async function exportSystemStats() {
+    try {
+        const response = await fetch('/api/system-export');
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `system_stats_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } else {
+            throw new Error('فشل في تصدير الإحصائيات');
+        }
+    } catch (error) {
+        showError('خطأ في تصدير الإحصائيات: ' + error.message);
+    }
+}
+
+// تهيئة الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    updateSystemStats();
+    feather.replace();
+});
+</script>
+{% endblock %}

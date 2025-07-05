@@ -1,0 +1,119 @@
+<!-- Sidebar Overlay for Mobile -->
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <a href="{{ url_for('dashboard') }}" class="logo-link">
+            <div class="logo-icon">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="16" cy="16" r="15" fill="currentColor" opacity="0.1"/>
+                    <path d="M8 12h16M8 16h16M8 20h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M22 20l2-2-2-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="6" cy="6" r="2" fill="currentColor"/>
+                    <circle cx="26" cy="26" r="2" fill="currentColor"/>
+                </svg>
+            </div>
+            <h1 class="logo-text">{{ t('app_title') }}</h1>
+        </a>
+        <button class="sidebar-toggle" id="sidebar-toggle">
+            <i data-feather="chevron-left"></i>
+        </button>
+    </div>
+    <nav class="nav-links">
+        <div class="nav-item">
+            <a href="{{ url_for('dashboard') }}" class="nav-link {{ 'active' if request.endpoint == 'dashboard' else '' }}">
+                <i data-feather="home"></i>
+                <span>{{ t('dashboard') }}</span>
+            </a>
+        </div>
+        <div class="nav-item">
+            <a href="{{ url_for('file_management', status='untranslated') }}" class="nav-link {{ 'active' if request.endpoint == 'file_management' and request.view_args.get('status') == 'untranslated' else '' }}">
+                <i data-feather="film"></i>
+                <span>{{ t('files_to_translate') }}</span>
+            </a>
+        </div>
+        <div class="nav-item">
+            <a href="{{ url_for('file_management', status='translated') }}" class="nav-link {{ 'active' if request.endpoint == 'file_management' and request.view_args.get('status') == 'translated' else '' }}">
+                <i data-feather="check-square"></i>
+                <span>{{ t('translated_files') }}</span>
+            </a>
+        </div>
+        <div class="nav-item">
+            <a href="{{ url_for('corrections_page') }}" class="nav-link {{ 'active' if request.endpoint == 'corrections_page' else '' }}">
+                <i data-feather="tool"></i>
+                <span>{{ t('corrections') }}</span>
+            </a>
+        </div>
+        <div class="nav-item">
+            <a href="{{ url_for('blacklist_page') }}" class="nav-link {{ 'active' if request.endpoint == 'blacklist_page' else '' }}">
+                <i data-feather="slash"></i>
+                <span>{{ t('blacklist') }}</span>
+            </a>
+        </div>
+
+        <div class="nav-item">
+            <a href="{{ url_for('logs_page') }}" class="nav-link {{ 'active' if request.endpoint == 'logs_page' else '' }}">
+                <i data-feather="file-text"></i>
+                <span>{{ t('system_logs') }}</span>
+            </a>
+        </div>
+        <div class="nav-item">
+            <a href="{{ url_for('notifications_page') }}" class="nav-link {{ 'active' if request.endpoint == 'notifications_page' else '' }}">
+                <i data-feather="bell"></i>
+                <span>{{ t('notifications') }}</span>
+                <span class="notification-badge" id="notification-count" style="display: none;"></span>
+            </a>
+        </div>
+        <div class="nav-item">
+            <a href="{{ url_for('settings_general') }}" class="nav-link {{ 'active' if 'settings_' in request.endpoint else '' }}">
+                <i data-feather="settings"></i>
+                <span>{{ t('settings') }}</span>
+            </a>
+        </div>
+        <div class="nav-item">
+            <a href="{{ url_for('database_admin_page') }}" class="nav-link {{ 'active' if request.endpoint == 'database_admin_page' else '' }}">
+                <i data-feather="database"></i>
+                <span>{{ t('database_admin') }}</span>
+            </a>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="nav-item">
+            <a href="{{ url_for('docs_page') }}" class="nav-link {{ 'active' if request.endpoint == 'docs_page' else '' }}">
+                <i data-feather="book-open"></i>
+                <span>{{ t('documentation') }}</span>
+            </a>
+        </div>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="control-group">
+            <label class="control-label">{{ t('theme') }}:</label>
+            <div class="theme-switcher">
+                <button class="theme-btn" data-theme="light" title="{{ t('light_theme') }}">
+                    <i data-feather="sun"></i>
+                </button>
+                <button class="theme-btn active" data-theme="dark" title="{{ t('dark_theme') }}">
+                    <i data-feather="moon"></i>
+                </button>
+                <button class="theme-btn" data-theme="system" title="{{ t('system_theme') }}">
+                    <i data-feather="monitor"></i>
+                </button>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">{{ t('language') }}:</label>
+            <div class="language-switcher">
+                <button class="lang-btn {{ 'active' if get_user_language() == 'ar' else '' }}" data-lang="ar" title="العربية">AR</button>
+                <button class="lang-btn {{ 'active' if get_user_language() == 'en' else '' }}" data-lang="en" title="English">EN</button>
+            </div>
+        </div>
+        <div class="logout-section">
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i data-feather="log-out"></i>
+                <span>{{ t('logout') }}</span>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<!-- Sidebar Overlay for Mobile -->
+<div class="sidebar-overlay" id="sidebar-overlay"></div>

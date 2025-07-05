@@ -1,0 +1,508 @@
+{% extends "layout.html" %}
+{% block title %}{{ t('notifications') }} - {{ t('app_title') }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    .notifications-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .notification-item {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        position: relative;
+        transition: all 0.2s;
+    }
+    .notification-item.unread {
+        border-left: 4px solid var(--accent-primary);
+        background: linear-gradient(90deg, rgba(var(--accent-primary-rgb), 0.05), var(--bg-primary));
+    }
+    .notification-item.read {
+        opacity: 0.7;
+    }
+    .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+    .notification-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .notification-type {
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    .notification-type.info {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+    .notification-type.success {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+    }
+    .notification-type.warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+    .notification-type.error {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+    .notification-message {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+    .notification-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    
+    .notification-time {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 500;
+        background: var(--bg-secondary);
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+    }
+    .notification-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .notification-action {
+        padding: 0.4rem 0.8rem;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        font-family: 'Tajawal', sans-serif;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .mark-read {
+        background: var(--accent-primary);
+        color: white !important;
+        border-color: var(--accent-primary);
+    }
+    .mark-read:hover {
+        background: var(--accent-primary);
+        opacity: 0.8;
+    }
+    .delete-notification {
+        background: var(--accent-error);
+        color: white !important;
+        border-color: var(--accent-error);
+    }
+    .delete-notification:hover {
+        background: var(--accent-error);
+        opacity: 0.8;
+    }
+    .notifications-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: var(--bg-primary);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+    .notifications-filters {
+        display: flex;
+        gap: 0;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 1rem;
+    }
+    .filter-btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-bottom: 3px solid transparent;
+        background: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'Tajawal', sans-serif;
+        font-weight: 500;
+        font-size: 1rem;
+        border-radius: 0;
+    }
+    .filter-btn.active {
+        color: var(--accent-primary) !important;
+        border-bottom-color: var(--accent-primary);
+        background: none;
+    }
+    .filter-btn:hover:not(.active) {
+        color: var(--text-primary);
+        background: rgba(var(--accent-primary-rgb), 0.05);
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-secondary);
+    }
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Light theme specific adjustments */
+    [data-theme="light"] .filter-btn {
+        color: var(--text-secondary) !important;
+        background: none;
+    }
+    
+    [data-theme="light"] .filter-btn.active {
+        color: var(--accent-primary) !important;
+        border-bottom-color: var(--accent-primary);
+        background: none;
+    }
+    
+    [data-theme="light"] .filter-btn:hover:not(.active) {
+        color: var(--text-primary) !important;
+        background: rgba(var(--accent-primary-rgb), 0.05);
+    }
+    
+    [data-theme="light"] .notification-action {
+        border: 1px solid var(--border-color);
+    }
+    
+    [data-theme="light"] .mark-read {
+        background: var(--accent-primary) !important;
+        color: white !important;
+    }
+    
+    [data-theme="light"] .delete-notification {
+        background: var(--accent-error) !important;
+        color: white !important;
+    }
+    
+    /* Action buttons container styling */
+    .notifications-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    /* Custom notification action buttons */
+    .notifications-action-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'Tajawal', sans-serif;
+        font-weight: 500;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .notifications-action-btn.btn-secondary {
+        background: var(--accent-primary);
+        color: white;
+        border-color: var(--accent-primary);
+    }
+    
+    .notifications-action-btn.btn-secondary:hover {
+        background: var(--accent-primary);
+        opacity: 0.8;
+        color: white;
+    }
+    
+    .notifications-action-btn.btn-danger {
+        background: var(--accent-error);
+        color: white;
+        border-color: var(--accent-error);
+    }
+    
+    .notifications-action-btn.btn-danger:hover {
+        background: var(--accent-error);
+        opacity: 0.8;
+    }
+    
+    /* Light theme adjustments */
+    [data-theme="light"] .notifications-action-btn.btn-secondary {
+        background: var(--accent-primary) !important;
+        color: white !important;
+        border: 1px solid var(--accent-primary);
+    }
+    
+    [data-theme="light"] .notifications-action-btn.btn-secondary:hover {
+        background: var(--accent-primary) !important;
+        opacity: 0.8;
+    }
+    
+    [data-theme="light"] .notification-time {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+    }
+    
+    [data-theme="light"] .notifications-action-btn.btn-danger {
+        background: var(--accent-error) !important;
+        color: white !important;
+        border: 1px solid var(--accent-error);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <div class="panel-header">
+        <h2><i data-feather="bell"></i>{{ t('notifications') }}</h2>
+    </div>
+    
+    <div class="notifications-toolbar">
+        <div class="notifications-filters">
+            <button class="filter-btn active" data-filter="all">{{ t('all') }}</button>
+            <button class="filter-btn" data-filter="unread">{{ t('unread') }}</button>
+            <button class="filter-btn" data-filter="info">{{ t('info') }}</button>
+            <button class="filter-btn" data-filter="success">{{ t('success') }}</button>
+            <button class="filter-btn" data-filter="warning">{{ t('warning') }}</button>
+            <button class="filter-btn" data-filter="error">{{ t('error') }}</button>
+        </div>
+        <div class="notifications-actions">
+            <button class="notifications-action-btn btn-secondary" onclick="markAllAsRead()">
+                <i data-feather="check-circle"></i>{{ t('mark_all_as_read') }}
+            </button>
+            <button class="notifications-action-btn btn-danger" onclick="clearAllNotifications()">
+                <i data-feather="trash-2"></i>{{ t('clear_all') }}
+            </button>
+        </div>
+    </div>
+    
+    <div id="notifications-list">
+        <!-- Notifications will be loaded here -->
+    </div>
+    
+    <div class="empty-state" id="empty-state" style="display: none;">
+        <i data-feather="bell-off"></i>
+        <h3>{{ t('no_notifications') }}</h3>
+        <p>{{ t('notifications_will_appear_here') }}</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Translation data for JavaScript
+const translations = {
+    'mark_as_read': '{{ t("mark_as_read") }}',
+    'delete': '{{ t("delete") }}',
+    'info': '{{ t("info") }}',
+    'success': '{{ t("success") }}',
+    'warning': '{{ t("warning") }}',
+    'error': '{{ t("error") }}',
+    'now': '{{ t("now") }}',
+    'minutes_ago': '{{ t("minutes_ago") }}',
+    'hours_ago': '{{ t("hours_ago") }}',
+    'days_ago': '{{ t("days_ago") }}',
+    'confirm_delete_notification': '{{ t("confirm_delete_notification") }}',
+    'confirm_delete_all_notifications': '{{ t("confirm_delete_all_notifications") }}'
+};
+
+let currentFilter = 'all';
+let notifications = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadNotifications();
+    setupFilters();
+    
+    // Auto-refresh notifications every 30 seconds
+    setInterval(loadNotifications, 30000);
+});
+
+function setupFilters() {
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentFilter = this.dataset.filter;
+            renderNotifications();
+        });
+    });
+}
+
+async function loadNotifications() {
+    try {
+        const response = await fetch('/api/notifications');
+        notifications = await response.json();
+        renderNotifications();
+    } catch (error) {
+        console.error('Failed to load notifications:', error);
+    }
+}
+
+function renderNotifications() {
+    const container = document.getElementById('notifications-list');
+    const emptyState = document.getElementById('empty-state');
+    
+    let filteredNotifications = notifications;
+    
+    if (currentFilter === 'unread') {
+        filteredNotifications = notifications.filter(n => !n.read);
+    } else if (currentFilter !== 'all') {
+        filteredNotifications = notifications.filter(n => n.type === currentFilter);
+    }
+    
+    if (filteredNotifications.length === 0) {
+        container.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+    }
+    
+    emptyState.style.display = 'none';
+    
+    container.innerHTML = filteredNotifications.map(notification => `
+        <div class="notification-item ${notification.read ? 'read' : 'unread'}" data-id="${notification.id}">
+            <div class="notification-header">
+                <div class="notification-title">
+                    ${getNotificationIcon(notification.type)}
+                    ${notification.title}
+                </div>
+                <span class="notification-type ${notification.type}">${getTypeLabel(notification.type)}</span>
+            </div>
+            <div class="notification-message">${notification.message}</div>
+            <div class="notification-meta">
+                <span class="notification-time">${formatDate(notification.created_at)}</span>
+                <div class="notification-actions">
+                    ${!notification.read ? `<button class="notification-action mark-read" onclick="markAsRead(${notification.id})">${translations.mark_as_read}</button>` : ''}
+                    <button class="notification-action delete-notification" onclick="deleteNotification(${notification.id})">${translations.delete}</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    // Re-initialize Feather icons
+    feather.replace();
+}
+
+function getNotificationIcon(type) {
+    const icons = {
+        info: '<i data-feather="info"></i>',
+        success: '<i data-feather="check-circle"></i>',
+        warning: '<i data-feather="alert-triangle"></i>',
+        error: '<i data-feather="alert-circle"></i>'
+    };
+    return icons[type] || icons.info;
+}
+
+function getTypeLabel(type) {
+    return translations[type] || translations.info;
+}
+
+function formatDate(dateString) {
+    if (!dateString || dateString === null || dateString === '') return translations.now;
+    
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+        console.warn('Invalid date:', dateString);
+        return translations.now;
+    }
+    
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    
+    if (diffMins < 1) return translations.now;
+    if (diffMins === 1) return translations.minutes_ago.replace('{n}', '1');
+    if (diffMins < 60) return translations.minutes_ago.replace('{n}', diffMins);
+    if (diffHours === 1) return translations.hours_ago.replace('{n}', '1');
+    if (diffHours < 24) return translations.hours_ago.replace('{n}', diffHours);
+    if (diffDays === 1) return translations.days_ago.replace('{n}', '1');
+    if (diffDays < 7) return translations.days_ago.replace('{n}', diffDays);
+    
+    return date.toLocaleDateString();
+}
+
+async function markAsRead(notificationId) {
+    try {
+        const response = await fetch(`/api/notifications/${notificationId}/mark-read`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            const notification = notifications.find(n => n.id === notificationId);
+            if (notification) notification.read = true;
+            renderNotifications();
+        }
+    } catch (error) {
+        console.error('Failed to mark notification as read:', error);
+    }
+}
+
+async function deleteNotification(notificationId) {
+    if (!confirm(translations.confirm_delete_notification)) return;
+    
+    try {
+        const response = await fetch(`/api/notifications/${notificationId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            notifications = notifications.filter(n => n.id !== notificationId);
+            renderNotifications();
+        }
+    } catch (error) {
+        console.error('Failed to delete notification:', error);
+    }
+}
+
+async function markAllAsRead() {
+    try {
+        const response = await fetch('/api/notifications/mark-all-read', {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            notifications.forEach(n => n.read = true);
+            renderNotifications();
+        }
+    } catch (error) {
+        console.error('Failed to mark all as read:', error);
+    }
+}
+
+async function clearAllNotifications() {
+    if (!confirm(translations.confirm_delete_all_notifications)) return;
+    
+    try {
+        const response = await fetch('/api/notifications/clear-all', {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            notifications = [];
+            renderNotifications();
+        }
+    } catch (error) {
+        console.error('Failed to clear all notifications:', error);
+    }
+}
+</script>
+{% endblock %}

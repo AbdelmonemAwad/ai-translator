@@ -1,0 +1,275 @@
+{% extends "settings/layout.html" %}
+
+{% block settings_content %}
+<form method="post" action="{{ url_for('settings_development') }}">
+    <div class="settings-section">
+        <h3 class="section-title">
+            <i data-feather="code"></i>
+            {{ t('development_settings') }}
+        </h3>
+        
+        <div class="help-box">
+            <div class="help-title">
+                <i data-feather="alert-triangle"></i>
+                {{ t('development_warning') }}
+            </div>
+            <div class="help-content">
+                {{ t('development_description') }}
+            </div>
+        </div>
+
+        <!-- Debug Mode -->
+        <div class="form-group">
+            <label class="form-label" for="debug_mode">{{ t('debug_mode') }}</label>
+            <select name="debug_mode" id="debug_mode" class="form-select">
+                <option value="true" {% if current_settings.get('debug_mode', 'false') == 'true' %}selected{% endif %}>نعم / Yes</option>
+                <option value="false" {% if current_settings.get('debug_mode', 'false') == 'false' %}selected{% endif %}>لا / No</option>
+            </select>
+            <div class="form-description">{{ t('debug_mode_description') }}</div>
+        </div>
+
+        <!-- Enable Testing Features -->
+        <div class="form-group">
+            <label class="form-label" for="enable_testing_features">{{ t('enable_testing_features') }}</label>
+            <select name="enable_testing_features" id="enable_testing_features" class="form-select">
+                <option value="true" {% if current_settings.get('enable_testing_features', 'false') == 'true' %}selected{% endif %}>نعم / Yes</option>
+                <option value="false" {% if current_settings.get('enable_testing_features', 'false') == 'false' %}selected{% endif %}>لا / No</option>
+            </select>
+            <div class="form-description">{{ t('testing_features_description') }}</div>
+        </div>
+
+        <!-- Show SQL Queries -->
+        <div class="form-group">
+            <label class="form-label" for="show_sql_queries">{{ t('show_sql_queries') }}</label>
+            <select name="show_sql_queries" id="show_sql_queries" class="form-select">
+                <option value="true" {% if current_settings.get('show_sql_queries', 'false') == 'true' %}selected{% endif %}>نعم / Yes</option>
+                <option value="false" {% if current_settings.get('show_sql_queries', 'false') == 'false' %}selected{% endif %}>لا / No</option>
+            </select>
+            <div class="form-description">{{ t('sql_queries_description') }}</div>
+        </div>
+
+        <!-- Performance Monitoring -->
+        <div class="form-group">
+            <label class="form-label" for="performance_monitoring">{{ t('performance_monitoring') }}</label>
+            <select name="performance_monitoring" id="performance_monitoring" class="form-select">
+                <option value="true" {% if current_settings.get('performance_monitoring', 'false') == 'true' %}selected{% endif %}>نعم / Yes</option>
+                <option value="false" {% if current_settings.get('performance_monitoring', 'false') == 'false' %}selected{% endif %}>لا / No</option>
+            </select>
+            <div class="form-description">{{ t('performance_monitoring_description') }}</div>
+        </div>
+    </div>
+
+    <!-- Development Tools Section -->
+    <div class="settings-section">
+        <h3 class="section-title">
+            <i data-feather="tool"></i>
+            {{ t('development_tools') }}
+        </h3>
+        
+        <div class="tools-grid">
+            <div class="tool-card">
+                <div class="tool-icon">
+                    <i data-feather="database"></i>
+                </div>
+                <div class="tool-info">
+                    <h4>{{ t('sample_data') }}</h4>
+                    <p>{{ t('sample_data_description') }}</p>
+                    <div class="tool-actions">
+                        <button type="button" class="btn-secondary" onclick="createSampleData()">
+                            <i data-feather="plus"></i>
+                            {{ t('create_sample_data') }}
+                        </button>
+                        <button type="button" class="btn-danger" onclick="clearSampleData()">
+                            <i data-feather="trash-2"></i>
+                            {{ t('clear_sample_data') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-icon">
+                    <i data-feather="refresh-cw"></i>
+                </div>
+                <div class="tool-info">
+                    <h4>{{ t('cache_management') }}</h4>
+                    <p>{{ t('cache_description') }}</p>
+                    <div class="tool-actions">
+                        <button type="button" class="btn-secondary" onclick="clearCache()">
+                            <i data-feather="refresh-cw"></i>
+                            {{ t('clear_cache') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-icon">
+                    <i data-feather="file-text"></i>
+                </div>
+                <div class="tool-info">
+                    <h4>{{ t('logs_management') }}</h4>
+                    <p>{{ t('logs_description') }}</p>
+                    <div class="tool-actions">
+                        <button type="button" class="btn-secondary" onclick="exportLogs()">
+                            <i data-feather="download"></i>
+                            {{ t('export_logs') }}
+                        </button>
+                        <button type="button" class="btn-danger" onclick="clearLogs()">
+                            <i data-feather="trash-2"></i>
+                            {{ t('clear_logs') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="save-button" style="background: var(--accent-green); border-color: var(--accent-green); color: white; margin: 0;">
+            <i data-feather="save"></i>
+            {{ t('save_settings') }}
+        </button>
+    </div>
+</form>
+
+<style>
+/* Tools Grid */
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.tool-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.tool-card:hover {
+    border-color: var(--accent-primary);
+    box-shadow: 0 4px 15px rgba(var(--accent-primary-rgb), 0.1);
+}
+
+.tool-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.tool-icon i {
+    color: white;
+    font-size: 24px;
+}
+
+.tool-info h4 {
+    color: var(--text-primary);
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.tool-info p {
+    color: var(--text-secondary);
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.tool-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-secondary, .btn-danger {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: var(--accent-blue);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: var(--accent-primary);
+    transform: translateY(-1px);
+}
+
+.btn-danger {
+    background: var(--accent-red);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+</style>
+
+<script>
+// Development Tools Functions
+function createSampleData() {
+    if (confirm('{{ t("confirm_create_sample_data") }}')) {
+        fetch('/api/create-sample-data', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.success ? '{{ t("sample_data_created") }}' : '{{ t("error_occurred") }}');
+            });
+    }
+}
+
+function clearSampleData() {
+    if (confirm('{{ t("confirm_clear_sample_data") }}')) {
+        fetch('/api/clear-sample-data', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.success ? '{{ t("sample_data_cleared") }}' : '{{ t("error_occurred") }}');
+            });
+    }
+}
+
+function clearCache() {
+    if (confirm('{{ t("confirm_clear_cache") }}')) {
+        fetch('/api/clear-cache', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.success ? '{{ t("cache_cleared") }}' : '{{ t("error_occurred") }}');
+            });
+    }
+}
+
+function exportLogs() {
+    window.open('/api/export-logs', '_blank');
+}
+
+function clearLogs() {
+    if (confirm('{{ t("confirm_clear_logs") }}')) {
+        fetch('/api/clear-all-logs', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.success ? '{{ t("logs_cleared") }}' : '{{ t("error_occurred") }}');
+            });
+    }
+}
+</script>
+{% endblock %}

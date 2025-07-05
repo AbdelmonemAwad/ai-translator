@@ -1,0 +1,418 @@
+{% extends "layout.html" %}
+{% block title %}{{ t('system_monitor') }} - {{ t('app_name') }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Enhanced System Monitor Design V2.0 - Professional Update */
+    .monitor-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    .stat-card {
+        background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+        padding: 2rem;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 8px 20px rgba(0,0,0,0.15);
+        border: 1px solid rgba(79, 209, 197, 0.2);
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+    }
+    .stat-card:hover {
+        transform: translateY(-12px) scale(1.03);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.4), 0 15px 30px rgba(79, 209, 197, 0.3);
+        border-color: rgba(79, 209, 197, 0.6);
+        background: linear-gradient(145deg, #334155 0%, #1e293b 100%);
+    }
+    
+    .stat-card h3 {
+        margin-top: 0;
+        border-bottom: 1px solid rgba(79, 209, 197, 0.3);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        color: #f8fafc;
+    }
+    .gauge-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        height: 150px;
+    }
+    .gauge-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: conic-gradient(var(--accent-primary) 0deg, var(--bg-secondary) 0deg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background 0.3s;
+    }
+    .gauge-inner-circle {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+        border: 2px solid rgba(79, 209, 197, 0.3);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    .gauge-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    .gauge-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-top: -5px;
+    }
+    .disk-usage-bar {
+        width: 100%; 
+        background: rgba(15, 23, 42, 0.8); 
+        border-radius: 12px; 
+        margin-bottom: 0.8rem; 
+        direction: ltr;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        height: 24px;
+    }
+    .disk-usage-fill {
+        height: 24px; 
+        background: linear-gradient(90deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%); 
+        border-radius: 12px; 
+        text-align: center; 
+        color: white; 
+        line-height: 24px; 
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+        position: relative;
+    }
+    .disk-label {
+        direction: ltr;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: 0.25rem;
+    }
+    .error-card {
+        background-color: var(--bg-primary);
+        border: 1px solid #dc3545;
+    }
+    .error-message {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #dc3545;
+        padding: 20px;
+        text-align: center;
+        justify-content: center;
+    }
+    .error-message i {
+        width: 24px;
+        height: 24px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="monitor-grid" id="monitor-grid">
+    <div class="spinner"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const grid = document.getElementById('monitor-grid');
+    let intervalId = null;
+
+    function renderGauge(id, title, value, unit, label) {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `
+            <h3>${title}</h3>
+            <div class="gauge-container">
+                <div class="gauge-circle" id="gauge-${id}">
+                    <div class="gauge-inner-circle">
+                        <div class="gauge-value" id="value-${id}">${value}<small>${unit}</small></div>
+                        <div class="gauge-label">${label}</div>
+                    </div>
+                </div>
+            </div>`;
+        return card;
+    }
+    
+    function renderDisk(pathId, title, data) {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `
+            <h3>${title}</h3>
+            <div class="disk-usage-bar">
+                <div class="disk-usage-fill" id="disk-fill-${pathId}" style="width: ${data.percent}%">${data.percent}%</div>
+            </div>
+            <div class="disk-label" id="disk-label-${pathId}">${data.used}GB / ${data.total}GB</div>`;
+        return card;
+    }
+    
+    function updateGauge(id, percent, valueText) {
+        const circle = document.getElementById(`gauge-${id}`);
+        const valueEl = document.getElementById(`value-${id}`);
+        if(circle) circle.style.background = `conic-gradient(var(--accent-primary) ${percent * 3.6}deg, var(--bg-secondary) 0deg)`;
+        if(valueEl) valueEl.innerHTML = valueText;
+    }
+    
+    function updateDisk(pathId, data) {
+        const fill = document.getElementById(`disk-fill-${pathId}`);
+        const label = document.getElementById(`disk-label-${pathId}`);
+        if (fill) {
+            fill.style.width = `${data.percent}%`;
+            fill.textContent = `${data.percent}%`;
+        }
+        if (label) {
+            label.textContent = `${data.used}GB / ${data.total}GB`;
+        }
+    }
+
+    async function updateStats() {
+        try {
+            const response = await fetch("{{ url_for('api_system_monitor_stats') }}");
+            const data = await response.json();
+
+            // First time render
+            if (grid.querySelector('.spinner')) {
+                grid.innerHTML = '';
+                grid.appendChild(renderGauge('cpu', '{{ t("processor_cpu") }}', data.cpu_percent, '%', '{{ t("usage") }}'));
+                grid.appendChild(renderGauge('ram', '{{ t("memory_ram") }}', data.ram_percent, '%', `${data.ram_used_gb}/${data.ram_total_gb} GB`));
+                // Enhanced system information display
+                if (data.system) {
+                    grid.appendChild(renderSystemInfo(data.system));
+                }
+                
+                // Enhanced CPU information
+                if (data.cpu) {
+                    grid.appendChild(renderCPUInfo(data.cpu));
+                }
+                
+                // Enhanced Memory information
+                if (data.memory) {
+                    grid.appendChild(renderMemoryInfo(data.memory));
+                }
+                
+                // GPU information with enhanced details
+                if (data.gpu && data.gpu.available && data.gpu.gpus && data.gpu.gpus.length > 0) {
+                    data.gpu.gpus.forEach((gpu, index) => {
+                        grid.appendChild(renderGPUInfo(gpu, index));
+                    });
+                } else if (data.gpu && data.gpu.error) {
+                    const errorCard = document.createElement('div');
+                    errorCard.className = 'stat-card error-card';
+                    errorCard.innerHTML = `
+                        <h3>{{ t("graphics_card") }}</h3>
+                        <div class="error-message">
+                            <i data-feather="alert-circle"></i>
+                            <span>${data.gpu.error}</span>
+                        </div>`;
+                    grid.appendChild(errorCard);
+                }
+                
+                // Enhanced Storage information
+                if (data.storage && data.storage.length > 0) {
+                    data.storage.forEach((storage, index) => {
+                        grid.appendChild(renderStorageInfo(storage, index));
+                    });
+                }
+                
+                // Network information
+                if (data.network && data.network.length > 0) {
+                    data.network.forEach((network, index) => {
+                        grid.appendChild(renderNetworkInfo(network, index));
+                    });
+                }
+                
+                // Legacy disk support for backward compatibility
+                for (const path in data.disk) {
+                    if (!data.disk[path].error) {
+                        const pathId = path.replace(/[^a-zA-Z0-9]/g, '');
+                        grid.appendChild(renderDisk(pathId, `{{ t("disk_usage_path") }} (${path})`, data.disk[path]));
+                    }
+                }
+            } else { // Subsequent updates
+                updateGauge('cpu', data.cpu_percent, `${data.cpu_percent}%`);
+                updateGauge('ram', data.ram_percent, `${data.ram_percent}%`);
+                const ramLabel = document.querySelector('#gauge-ram .gauge-label');
+                if (ramLabel) ramLabel.textContent = `${data.ram_used_gb}/${data.ram_total_gb} GB`;
+
+                if (data.gpu.available && !data.gpu.error) {
+                    updateGauge('vram', data.gpu.vram_percent, `${data.gpu.vram_percent}%`);
+                    const vramLabel = document.querySelector('#gauge-vram .gauge-label');
+                    if (vramLabel) vramLabel.textContent = `${data.gpu.vram_used_gb}/${data.gpu.vram_total_gb} GB`;
+                    updateGauge('gputemp', (data.gpu.temp / 100), `${data.gpu.temp}<small>°C</small>`);
+                }
+                for (const path in data.disk) {
+                    if (!data.disk[path].error) {
+                        const pathId = path.replace(/[^a-zA-Z0-9]/g, '');
+                        updateDisk(pathId, data.disk[path]);
+                    }
+                }
+            }
+        } catch (error) {
+            grid.innerHTML = '<div class="stat-card"><h3>{{ t("error") }}</h3><p>{{ t("error_system_stats") }}.</p></div>';
+            console.error(error);
+            if(intervalId) clearInterval(intervalId);
+        }
+    }
+    
+    // Enhanced render functions for new system monitor
+    function renderSystemInfo(system) {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `
+            <h3><i data-feather="server"></i> {{ t("system_info") }}</h3>
+            <div class="info-list">
+                <div class="info-item"><strong>{{ t("hostname") }}:</strong> ${system.hostname}</div>
+                <div class="info-item"><strong>{{ t("os_name") }}:</strong> ${system.os_name} ${system.os_version}</div>
+                <div class="info-item"><strong>{{ t("uptime") }}:</strong> ${system.uptime}</div>
+                <div class="info-item"><strong>{{ t("load_average") }}:</strong> ${system.load_average.map(l => l.toFixed(2)).join(', ')}</div>
+            </div>`;
+        return card;
+    }
+
+    function renderNetworkInfo(network, index) {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        const statusColor = network.status === 'up' ? '#10a37f' : '#ef4444';
+        card.innerHTML = `
+            <h3><i data-feather="wifi" style="color: ${statusColor}"></i> {{ t("network_interface") }} ${network.interface}</h3>
+            <div class="info-list">
+                <div class="info-item"><strong>{{ t("ip_address") }}:</strong> ${network.ip_address}</div>
+                <div class="info-item"><strong>{{ t("status") }}:</strong> <span style="color: ${statusColor}">${network.status.toUpperCase()}</span></div>
+                <div class="info-item"><strong>{{ t("bytes_sent") }}:</strong> ${network.bytes_sent}</div>
+                <div class="info-item"><strong>{{ t("bytes_received") }}:</strong> ${network.bytes_recv}</div>
+                <div class="info-item"><strong>{{ t("packets_sent") }}:</strong> ${network.packets_sent.toLocaleString()}</div>
+                <div class="info-item"><strong>{{ t("packets_received") }}:</strong> ${network.packets_recv.toLocaleString()}</div>
+            </div>`;
+        return card;
+    }
+
+    function renderStorageInfo(storage, index) {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `
+            <h3><i data-feather="hard-drive"></i> ${storage.device} (${storage.device_type})</h3>
+            <div class="disk-usage-bar">
+                <div class="disk-usage-fill" style="width: ${storage.percentage}%">${storage.percentage.toFixed(1)}%</div>
+            </div>
+            <div class="disk-label">${storage.used.toFixed(1)} / ${storage.total.toFixed(1)} GB</div>
+            <div class="info-list">
+                <div class="info-item"><strong>{{ t("mount_point") }}:</strong> ${storage.mountpoint}</div>
+                <div class="info-item"><strong>{{ t("device_type") }}:</strong> ${storage.device_type}</div>
+                <div class="info-item"><strong>{{ t("filesystem") }}:</strong> ${storage.filesystem}</div>
+                <div class="info-item"><strong>{{ t("free_space") }}:</strong> ${storage.free.toFixed(1)} GB</div>
+            </div>`;
+        return card;
+    }
+
+    function renderCPUInfo(cpu) {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `
+            <h3><i data-feather="cpu"></i> {{ t("processor_details") }}</h3>
+            <div class="gauge-container">
+                <div class="gauge-circle" style="background: conic-gradient(var(--accent-primary) ${cpu.utilization * 3.6}deg, var(--bg-secondary) 0deg)">
+                    <div class="gauge-inner-circle">
+                        <span class="gauge-value">${cpu.utilization.toFixed(1)}%</span>
+                        <span class="gauge-label">{{ t("usage") }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="info-list">
+                <div class="info-item"><strong>{{ t("cpu_name") }}:</strong> ${cpu.name}</div>
+                <div class="info-item"><strong>{{ t("architecture") }}:</strong> ${cpu.architecture}</div>
+                <div class="info-item"><strong>{{ t("cores") }}:</strong> ${cpu.cores_physical} {{ t("physical") }}, ${cpu.cores_logical} {{ t("logical") }}</div>
+                <div class="info-item"><strong>{{ t("frequency") }}:</strong> ${cpu.frequency_current.toFixed(2)} / ${cpu.frequency_max.toFixed(2)} GHz</div>
+                ${cpu.temperature ? `<div class="info-item"><strong>{{ t("temperature") }}:</strong> ${cpu.temperature.toFixed(1)}°C</div>` : ''}
+            </div>`;
+        return card;
+    }
+
+    function renderMemoryInfo(memory) {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `
+            <h3><i data-feather="database"></i> {{ t("memory_details") }}</h3>
+            <div class="gauge-container">
+                <div class="gauge-circle" style="background: conic-gradient(var(--accent-primary) ${memory.percentage * 3.6}deg, var(--bg-secondary) 0deg)">
+                    <div class="gauge-inner-circle">
+                        <span class="gauge-value">${memory.percentage.toFixed(1)}%</span>
+                        <span class="gauge-label">${memory.used.toFixed(1)}/${memory.total.toFixed(1)} GB</span>
+                    </div>
+                </div>
+            </div>
+            <div class="info-list">
+                ${memory.type ? `<div class="info-item"><strong>{{ t("memory_type") }}:</strong> ${memory.type}</div>` : ''}
+                ${memory.speed ? `<div class="info-item"><strong>{{ t("memory_speed") }}:</strong> ${memory.speed}</div>` : ''}
+                <div class="info-item"><strong>{{ t("available") }}:</strong> ${memory.available.toFixed(1)} GB</div>
+                <div class="info-item"><strong>{{ t("swap") }}:</strong> ${memory.swap_used.toFixed(1)}/${memory.swap_total.toFixed(1)} GB</div>
+            </div>`;
+        return card;
+    }
+
+    function renderGPUInfo(gpu, index) {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        const memoryPercent = (gpu.memory_used / gpu.memory_total) * 100;
+        card.innerHTML = `
+            <h3><i data-feather="zap"></i> {{ t("graphics_card") }} ${index} - ${gpu.name}</h3>
+            <div class="gauge-container">
+                <div class="gauge-circle" style="background: conic-gradient(var(--accent-primary) ${gpu.utilization * 3.6}deg, var(--bg-secondary) 0deg)">
+                    <div class="gauge-inner-circle">
+                        <span class="gauge-value">${gpu.utilization}%</span>
+                        <span class="gauge-label">{{ t("usage") }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="info-list">
+                <div class="info-item"><strong>{{ t("memory") }}:</strong> ${(gpu.memory_used/1024).toFixed(1)}/${(gpu.memory_total/1024).toFixed(1)} GB</div>
+                <div class="info-item"><strong>{{ t("temperature") }}:</strong> ${gpu.temperature}°C</div>
+                <div class="info-item"><strong>{{ t("power") }}:</strong> ${gpu.power_draw.toFixed(1)}/${gpu.power_limit.toFixed(1)}W</div>
+                <div class="info-item"><strong>{{ t("driver_version") }}:</strong> ${gpu.driver_version}</div>
+                <div class="info-item"><strong>CUDA:</strong> ${gpu.cuda_version}</div>
+                <div class="info-item"><strong>{{ t("performance_score") }}:</strong> ${gpu.performance_score}/100</div>
+            </div>`;
+        return card;
+    }
+
+    updateStats();
+    intervalId = setInterval(updateStats, 3000);
+});
+</script>
+
+<style>
+.info-list {
+    margin-top: 1rem;
+}
+.info-item {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    border-left: 3px solid var(--accent-primary);
+    font-size: 0.9rem;
+}
+.info-item strong {
+    color: var(--text-primary);
+    margin-right: 0.5rem;
+}
+</style>
+{% endblock %}

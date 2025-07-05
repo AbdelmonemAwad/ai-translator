@@ -1,0 +1,927 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ t('system_logs') }}{% endblock %}
+
+{% block head_extra %}
+<style>
+.logs-container {
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.logs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.logs-title {
+    color: var(--accent-primary);
+    font-size: 1.8rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logs-controls {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 200px;
+    overflow: hidden;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 0.9rem;
+}
+
+.dropdown-item:hover {
+    background-color: var(--hover-color);
+}
+
+.log-entry.selectable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.log-entry.selectable:hover {
+    background-color: var(--hover-color);
+}
+
+.log-entry.selected {
+    background-color: var(--primary-color);
+    color: white;
+    border-left: 4px solid var(--primary-dark);
+}
+
+.log-checkbox {
+    margin-left: 0.5rem;
+    cursor: pointer;
+}
+
+.empty-state, .error-state, .success-state, .loading-state {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.empty-state i, .error-state i, .success-state i, .loading-state i {
+    color: var(--text-light);
+    opacity: 0.7;
+    font-size: 2.5rem !important;
+}
+
+.log-timestamp {
+    font-size: 0.65rem;
+    opacity: 0.7;
+    margin-left: 0.5rem;
+}
+
+.log-level {
+    font-weight: bold;
+    font-size: 0.7rem;
+    margin-right: 0.5rem;
+}
+
+.log-message {
+    font-size: 0.72rem;
+    margin-top: 0.2rem;
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
+
+/* Translation log specific styles */
+.log-entry.success {
+    background: rgba(16, 185, 129, 0.1);
+    border-left-color: #10b981;
+    color: #10b981;
+}
+
+.log-entry.failed {
+    background: rgba(239, 68, 68, 0.1);
+    border-left-color: #ef4444;
+    color: #ef4444;
+}
+
+.log-entry.incomplete {
+    background: rgba(245, 158, 11, 0.1);
+    border-left-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.log-entry.started {
+    background: rgba(59, 130, 246, 0.1);
+    border-left-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.log-display {
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    min-height: 400px;
+    max-height: 65vh;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    direction: ltr;
+    text-align: left;
+    white-space: pre-wrap;
+}
+
+.log-entry {
+    margin-bottom: 0.25rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    border-left: 3px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.72rem;
+    line-height: 1.2;
+    word-wrap: break-word;
+    max-height: 2.5rem;
+    overflow: hidden;
+    cursor: pointer;
+    transition: max-height 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.log-entry.expanded {
+    max-height: none;
+    align-items: flex-start;
+}
+
+.log-entry:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Translation logs specific styling - restore to original format */
+.log-entry.translation-log {
+    max-height: none;
+    overflow: visible;
+    cursor: default;
+    display: block;
+    align-items: initial;
+    justify-content: initial;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.log-entry.error {
+    background: rgba(239, 68, 68, 0.1);
+    border-left-color: #ef4444;
+    color: #ef4444;
+}
+
+.log-entry.warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-left-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.log-entry.info {
+    background: rgba(59, 130, 246, 0.1);
+    border-left-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.filter-select {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}
+
+.loading-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--accent-primary);
+}
+
+.success-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--accent-green);
+}
+
+.error-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--accent-red);
+}
+
+@media (max-width: 768px) {
+    .logs-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .logs-controls {
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="logs-container">
+    <div class="logs-header">
+        <h1 class="logs-title">
+            <i data-feather="file-text"></i>
+            {{ t('system_logs') }}
+        </h1>
+        
+        <div class="logs-controls">
+            <button class="action-btn" onclick="loadLogs()">
+                <i data-feather="refresh-cw"></i>
+                {{ t('refresh_logs') }}
+            </button>
+            
+            <div class="dropdown-container">
+                <button class="action-btn btn-danger dropdown-btn" onclick="toggleDeleteMenu()">
+                    <i data-feather="trash-2"></i>
+                    {{ t('delete_options') }}
+                    <i data-feather="chevron-down" style="margin-right: 0.5rem;"></i>
+                </button>
+                <div class="dropdown-menu" id="delete-menu">
+                    <button class="dropdown-item" onclick="clearAllLogs()">
+                        <i data-feather="trash-2"></i>
+                        {{ t('delete_all_logs') }}
+                    </button>
+                    <button class="dropdown-item" onclick="clearErrorLogs()">
+                        <i data-feather="alert-circle"></i>
+                        {{ t('delete_error_logs_only') }}
+                    </button>
+                    <button class="dropdown-item" onclick="clearOldLogs()">
+                        <i data-feather="clock"></i>
+                        {{ t('delete_old_logs') }}
+                    </button>
+                    <button class="dropdown-item" onclick="clearSelectedLogs()">
+                        <i data-feather="check-square"></i>
+                        {{ t('delete_selected_logs') }}
+                    </button>
+                </div>
+            </div>
+            
+            <button class="action-btn" onclick="toggleSelectMode()" id="select-mode-btn">
+                <i data-feather="check-square"></i>
+                {{ t('multi_select') }}
+            </button>
+            
+
+            
+            <select class="filter-select" id="log-type-filter" onchange="switchLogType()">
+                <option value="system">{{ t('system_logs') }}</option>
+                <option value="translation">{{ t('translation_logs') }}</option>
+            </select>
+            
+            <select class="filter-select" id="log-level-filter" onchange="filterLogs()">
+                <option value="">{{ t('all_levels') }}</option>
+                <option value="ERROR">{{ t('errors_only') }}</option>
+                <option value="WARNING">{{ t('warnings_only') }}</option>
+                <option value="INFO">{{ t('info_only') }}</option>
+                <option value="SUCCESS">{{ t('success') }}</option>
+                <option value="FAILED">{{ t('failed') }}</option>
+                <option value="INCOMPLETE">{{ t('incomplete') }}</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="log-display" id="log-display">
+        <div class="empty-state">
+            <i data-feather="file-text" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+            <p>انقر على "{{ t('refresh_logs') }}" لعرض السجلات</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-load logs when page loads
+    loadLogs();
+});
+
+async function loadLogs() {
+    const display = document.getElementById('log-display');
+    
+    // Show loading state
+    display.innerHTML = `
+        <div class="loading-state">
+            <i data-feather="loader" class="spinner"></i>
+            <p>{{ t('loading_logs') }}</p>
+        </div>
+    `;
+    feather.replace();
+    
+    try {
+        const response = await fetch('/api/get_log');
+        const data = await response.json();
+        
+        if (data.error) {
+            display.innerHTML = `
+                <div class="error-state">
+                    <i data-feather="alert-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <p>خطأ: ${data.error}</p>
+                </div>
+            `;
+            feather.replace();
+            return;
+        }
+        
+        if (!data.content || data.content.trim() === '') {
+            display.innerHTML = `
+                <div class="empty-state">
+                    <i data-feather="file-text" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <p>لا توجد سجلات حتى الآن</p>
+                </div>
+            `;
+            feather.replace();
+            return;
+        }
+        
+        // Format and display logs
+        const formattedLogs = formatLogs(data.content);
+        display.innerHTML = formattedLogs;
+        
+        // Scroll to bottom
+        display.scrollTop = display.scrollHeight;
+        
+        // Apply current filter
+        filterLogs();
+        
+    } catch (error) {
+        display.innerHTML = `
+            <div class="error-state">
+                <i data-feather="alert-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <p>خطأ في تحميل السجلات: ${error.message}</p>
+            </div>
+        `;
+        feather.replace();
+    }
+}
+
+function formatLogs(content) {
+    const lines = content.split('\n').filter(line => line.trim());
+    let formattedHTML = '';
+    
+    lines.forEach(line => {
+        if (line.trim()) {
+            const logEntry = parseLogLine(line);
+            formattedHTML += formatLogEntry(logEntry);
+        }
+    });
+    
+    return formattedHTML || '<div class="empty-state">لا توجد سجلات صالحة</div>';
+}
+
+function parseLogLine(line) {
+    // Extract timestamp
+    const timestampMatch = line.match(/\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]/);
+    const timestamp = timestampMatch ? timestampMatch[1] : '';
+    
+    // Extract level
+    let level = 'INFO';
+    if (/ERROR/i.test(line)) level = 'ERROR';
+    else if (/WARNING/i.test(line)) level = 'WARNING';
+    else if (/INFO/i.test(line)) level = 'INFO';
+    
+    return {
+        timestamp,
+        level,
+        message: line,
+        rawLine: line
+    };
+}
+
+function formatLogEntry(entry) {
+    const levelClass = entry.level.toLowerCase();
+    const levelIcon = {
+        'ERROR': 'alert-circle',
+        'WARNING': 'alert-triangle',
+        'INFO': 'info'
+    }[entry.level] || 'info';
+    
+    // Shorten long messages
+    let message = entry.message;
+    if (message.length > 100) {
+        message = message.substring(0, 97) + '...';
+    }
+    
+    // Format timestamp to show only time
+    let timeDisplay = '';
+    if (entry.timestamp) {
+        try {
+            const date = new Date(entry.timestamp);
+            timeDisplay = date.toLocaleTimeString('en-GB', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+        } catch {
+            timeDisplay = entry.timestamp.substring(entry.timestamp.length - 8) || '';
+        }
+    }
+    
+    return `
+        <div class="log-entry ${levelClass}" data-level="${entry.level}" title="${entry.rawLine}" onclick="toggleLogExpansion(this)">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.3rem; flex: 1; min-width: 0;">
+                    <i data-feather="${levelIcon}" style="width: 12px; height: 12px; flex-shrink: 0;"></i>
+                    <span class="log-level">[${entry.level}]</span>
+                    <span class="log-message" style="word-break: break-all;" data-full-message="${entry.rawLine}" data-short-message="${message}">${message}</span>
+                </div>
+                ${timeDisplay ? `<span class="log-timestamp" style="flex-shrink: 0;">${timeDisplay}</span>` : ''}
+            </div>
+        </div>
+    `;
+}
+
+async function clearLogs() {
+    if (!confirm('هل أنت متأكد من حذف جميع السجلات؟')) {
+        return;
+    }
+    
+    const display = document.getElementById('log-display');
+    display.innerHTML = `
+        <div class="loading-state">
+            <i data-feather="loader" class="spinner"></i>
+            <p>جاري مسح السجلات...</p>
+        </div>
+    `;
+    feather.replace();
+    
+    try {
+        const response = await fetch('/api/clear_log', { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+            display.innerHTML = `
+                <div class="success-state">
+                    <i data-feather="check-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <p>تم مسح السجلات بنجاح</p>
+                </div>
+            `;
+            feather.replace();
+            
+            // Reload logs after 1.5 seconds
+            setTimeout(() => {
+                loadLogs();
+            }, 1500);
+        } else {
+            throw new Error('فشل في مسح السجلات');
+        }
+    } catch (error) {
+        display.innerHTML = `
+            <div class="error-state">
+                <i data-feather="alert-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <p>خطأ في مسح السجلات: ${error.message}</p>
+            </div>
+        `;
+        feather.replace();
+    }
+}
+
+function filterLogs() {
+    const filterValue = document.getElementById('log-level-filter').value;
+    const logEntries = document.querySelectorAll('.log-entry');
+    
+    logEntries.forEach(entry => {
+        if (!filterValue || entry.dataset.level === filterValue) {
+            entry.style.display = 'block';
+        } else {
+            entry.style.display = 'none';
+        }
+    });
+}
+
+// Add spinner animation
+const style = document.createElement('style');
+style.textContent = `
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+`;
+document.head.appendChild(style);
+
+// Click outside to close dropdown
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('delete-menu');
+    const dropdownBtn = event.target.closest('.dropdown-btn');
+    
+    if (!dropdownBtn && dropdown) {
+        dropdown.classList.remove('show');
+    }
+});
+
+// Toggle delete menu dropdown
+function toggleDeleteMenu() {
+    const menu = document.getElementById('delete-menu');
+    menu.classList.toggle('show');
+}
+
+// Select mode variables
+let selectMode = false;
+let selectedLogs = new Set();
+
+// Toggle select mode
+function toggleSelectMode() {
+    selectMode = !selectMode;
+    selectedLogs.clear();
+    
+    const btn = document.getElementById('select-mode-btn');
+    const logEntries = document.querySelectorAll('.log-entry');
+    
+    if (selectMode) {
+        btn.innerHTML = '<i data-feather="x"></i> إلغاء التحديد';
+        btn.classList.add('btn-warning');
+        
+        logEntries.forEach((entry, index) => {
+            entry.classList.add('selectable');
+            entry.setAttribute('data-log-index', index);
+            entry.addEventListener('click', toggleLogSelection);
+            
+            // Add checkbox
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'log-checkbox';
+            checkbox.setAttribute('data-log-index', index);
+            entry.appendChild(checkbox);
+        });
+    } else {
+        btn.innerHTML = '<i data-feather="check-square"></i> تحديد متعدد';
+        btn.classList.remove('btn-warning');
+        
+        logEntries.forEach(entry => {
+            entry.classList.remove('selectable', 'selected');
+            entry.removeEventListener('click', toggleLogSelection);
+            
+            // Remove checkbox
+            const checkbox = entry.querySelector('.log-checkbox');
+            if (checkbox) checkbox.remove();
+        });
+    }
+    
+    feather.replace();
+}
+
+// Toggle log selection
+function toggleLogSelection(event) {
+    if (!selectMode) return;
+    
+    const entry = event.currentTarget;
+    const index = entry.getAttribute('data-log-index');
+    const checkbox = entry.querySelector('.log-checkbox');
+    
+    if (selectedLogs.has(index)) {
+        selectedLogs.delete(index);
+        entry.classList.remove('selected');
+        if (checkbox) checkbox.checked = false;
+    } else {
+        selectedLogs.add(index);
+        entry.classList.add('selected');
+        if (checkbox) checkbox.checked = true;
+    }
+    
+    event.stopPropagation();
+}
+
+// Clear all logs
+function clearAllLogs() {
+    if (confirm('هل أنت متأكد من حذف جميع السجلات؟')) {
+        clearLogs();
+    }
+    toggleDeleteMenu();
+}
+
+// Clear error logs only
+function clearErrorLogs() {
+    if (confirm('هل أنت متأكد من حذف سجلات الأخطاء فقط؟')) {
+        fetch('/api/clear_log?level=ERROR', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadLogs();
+                    showNotification('تم حذف سجلات الأخطاء بنجاح', 'success');
+                } else {
+                    showNotification('فشل في حذف السجلات: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('خطأ في الاتصال: ' + error.message, 'error');
+            });
+    }
+    toggleDeleteMenu();
+}
+
+// Clear old logs (older than 7 days)
+function clearOldLogs() {
+    if (confirm('هل أنت متأكد من حذف السجلات القديمة (أكثر من 7 أيام)؟')) {
+        fetch('/api/clear_log?days=7', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadLogs();
+                    showNotification('تم حذف السجلات القديمة بنجاح', 'success');
+                } else {
+                    showNotification('فشل في حذف السجلات: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('خطأ في الاتصال: ' + error.message, 'error');
+            });
+    }
+    toggleDeleteMenu();
+}
+
+// Clear selected logs
+function clearSelectedLogs() {
+    if (selectedLogs.size === 0) {
+        showNotification('يرجى تحديد السجلات المراد حذفها أولاً', 'warning');
+        toggleDeleteMenu();
+        return;
+    }
+    
+    if (confirm(`هل أنت متأكد من حذف ${selectedLogs.size} سجل محدد؟`)) {
+        const indices = Array.from(selectedLogs);
+        
+        fetch('/api/delete_selected_logs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ indices: indices })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadLogs();
+                toggleSelectMode(); // Exit select mode
+                showNotification('تم حذف السجلات المحددة بنجاح', 'success');
+            } else {
+                showNotification('فشل في حذف السجلات: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('خطأ في الاتصال: ' + error.message, 'error');
+        });
+    }
+    toggleDeleteMenu();
+}
+
+// Show notification
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <i data-feather="${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info'}"></i>
+        <span>${message}</span>
+    `;
+    
+    // Style the notification
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 9999;
+        min-width: 300px;
+        color: var(--text-color);
+    `;
+    
+    // Add type-specific styling
+    if (type === 'success') {
+        notification.style.borderColor = '#10b981';
+        notification.style.color = '#10b981';
+    } else if (type === 'error') {
+        notification.style.borderColor = '#ef4444';
+        notification.style.color = '#ef4444';
+    } else if (type === 'warning') {
+        notification.style.borderColor = '#f59e0b';
+        notification.style.color = '#f59e0b';
+    }
+    
+    document.body.appendChild(notification);
+    feather.replace();
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 5000);
+}
+
+// Switch between log types
+function switchLogType() {
+    const logType = document.getElementById('log-type-filter').value;
+    if (logType === 'translation') {
+        loadTranslationLogs();
+    } else {
+        loadLogs();
+    }
+}
+
+// Load translation logs
+async function loadTranslationLogs() {
+    const display = document.getElementById('log-display');
+    
+    display.innerHTML = `
+        <div class="loading-state">
+            <i data-feather="loader" class="spinner"></i>
+            <p>جاري تحميل سجلات الترجمة...</p>
+        </div>
+    `;
+    feather.replace();
+    
+    try {
+        const response = await fetch('/api/translation_logs');
+        const data = await response.json();
+        
+        if (!response.ok) {
+            display.innerHTML = `
+                <div class="error-state">
+                    <i data-feather="alert-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <p>خطأ: ${data.error}</p>
+                </div>
+            `;
+            feather.replace();
+            return;
+        }
+        
+        if (!data.logs || data.logs.length === 0) {
+            display.innerHTML = `
+                <div class="empty-state">
+                    <i data-feather="file-text" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <p>لا توجد سجلات ترجمة حتى الآن</p>
+                </div>
+            `;
+            feather.replace();
+            return;
+        }
+        
+        // Format and display translation logs
+        const formattedLogs = formatTranslationLogs(data.logs);
+        display.innerHTML = formattedLogs;
+        
+        // Scroll to bottom
+        display.scrollTop = display.scrollHeight;
+        
+        // Apply current filter
+        filterLogs();
+        
+        feather.replace();
+        
+    } catch (error) {
+        display.innerHTML = `
+            <div class="error-state">
+                <i data-feather="alert-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <p>خطأ في تحميل سجلات الترجمة: ${error.message}</p>
+            </div>
+        `;
+        feather.replace();
+    }
+}
+
+// Format translation logs
+function formatTranslationLogs(logs) {
+    let formattedHTML = '';
+    
+    logs.forEach(log => {
+        const statusClass = log.status.toLowerCase();
+        const statusIcon = {
+            'success': 'check-circle',
+            'failed': 'x-circle',
+            'incomplete': 'pause-circle',
+            'started': 'play-circle'
+        }[log.status] || 'circle';
+        
+        const statusText = {
+            'success': 'نجح',
+            'failed': 'فشل',
+            'incomplete': 'غير مكتمل',
+            'started': 'بدأ'
+        }[log.status] || log.status;
+        
+        const timeDisplay = new Date(log.created_at).toLocaleTimeString('en-GB', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+        
+        const progressBar = log.progress ? `
+            <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 4px; height: 4px; margin: 0.25rem 0;">
+                <div style="width: ${log.progress}%; background: var(--accent-primary); height: 100%; border-radius: 4px;"></div>
+            </div>
+        ` : '';
+        
+        formattedHTML += `
+            <div class="log-entry translation-log ${statusClass}" data-level="${log.status.toUpperCase()}" title="${log.file_path}">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.3rem; flex: 1; min-width: 0;">
+                        <i data-feather="${statusIcon}" style="width: 12px; height: 12px; flex-shrink: 0;"></i>
+                        <span class="log-level">[${statusText}]</span>
+                        <span class="log-message" style="word-break: break-all;">${log.file_name}</span>
+                    </div>
+                    <span class="log-timestamp" style="flex-shrink: 0;">${timeDisplay}</span>
+                </div>
+                ${progressBar}
+                ${log.error_message ? `<div style="font-size: 0.65rem; color: #ef4444; margin-top: 0.25rem;">${log.error_message}</div>` : ''}
+                ${log.details ? `<div style="font-size: 0.65rem; opacity: 0.7; margin-top: 0.25rem;">${log.details}</div>` : ''}
+            </div>
+        `;
+    });
+    
+    return formattedHTML || '<div class="empty-state"><i data-feather="file-text"></i><p>لا توجد سجلات ترجمة</p></div>';
+}
+
+// Note: Sample data creation functions moved to Development Tools in Settings
+
+// Toggle log expansion
+function toggleLogExpansion(logElement) {
+    const messageElement = logElement.querySelector('.log-message');
+    const isExpanded = logElement.classList.contains('expanded');
+    
+    if (isExpanded) {
+        // Collapse: show short message
+        logElement.classList.remove('expanded');
+        messageElement.textContent = messageElement.getAttribute('data-short-message');
+    } else {
+        // Expand: show full message
+        logElement.classList.add('expanded');
+        messageElement.textContent = messageElement.getAttribute('data-full-message');
+    }
+}
+</script>
+{% endblock %}

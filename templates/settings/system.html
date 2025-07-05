@@ -1,0 +1,828 @@
+{% extends "settings/layout.html" %}
+
+{% block title %}{{ t('system_settings') }}{% endblock %}
+
+{% block settings_content %}
+<div class="settings-content">
+    <div class="settings-header">
+        <div class="header-icon">
+            <i data-feather="server"></i>
+        </div>
+        <div class="header-content">
+            <h2>{{ t('system_settings') }}</h2>
+            <p>{{ t('system_settings_description') }}</p>
+        </div>
+    </div>
+
+    <!-- Sub-tabs for System section -->
+    <div class="sub-tabs">
+        <a href="#performance" class="sub-tab active" onclick="showSystemTab('performance', this)">
+            <i data-feather="activity"></i>
+            {{ t('performance_settings') }}
+        </a>
+        <a href="#monitoring" class="sub-tab" onclick="showSystemTab('monitoring', this)">
+            <i data-feather="bar-chart"></i>
+            {{ t('monitoring_settings') }}
+        </a>
+        <a href="#development" class="sub-tab" onclick="showSystemTab('development', this)">
+            <i data-feather="code"></i>
+            {{ t('development_settings') }}
+        </a>
+    </div>
+
+    <form method="post" action="{{ url_for('settings_system') }}">
+        <!-- Performance Tab -->
+        <div id="performance" class="tab-content active">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="activity"></i>
+                    {{ t('performance_settings') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('performance_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('performance_description') }}
+                    </div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- Worker Processes -->
+                    <div class="setting-group">
+                        <label for="worker_processes" class="setting-label">
+                            <i data-feather="cpu"></i>
+                            {{ t('worker_processes') }}
+                        </label>
+                        <select id="worker_processes" name="worker_processes" class="setting-select">
+                            <option value="auto" {% if current_settings.get('worker_processes') == 'auto' %}selected{% endif %}>{{ t('auto') }}</option>
+                            <option value="1" {% if current_settings.get('worker_processes') == '1' %}selected{% endif %}>1</option>
+                            <option value="2" {% if current_settings.get('worker_processes') == '2' %}selected{% endif %}>2</option>
+                            <option value="4" {% if current_settings.get('worker_processes') == '4' %}selected{% endif %}>4</option>
+                            <option value="8" {% if current_settings.get('worker_processes') == '8' %}selected{% endif %}>8</option>
+                        </select>
+                        <div class="setting-description">{{ t('worker_processes_description') }}</div>
+                    </div>
+
+                    <!-- Worker Timeout -->
+                    <div class="setting-group">
+                        <label for="worker_timeout" class="setting-label">
+                            <i data-feather="clock"></i>
+                            {{ t('worker_timeout') }}
+                        </label>
+                        <select id="worker_timeout" name="worker_timeout" class="setting-select">
+                            <option value="30" {% if current_settings.get('worker_timeout') == '30' %}selected{% endif %}>30 {{ t('seconds') }}</option>
+                            <option value="60" {% if current_settings.get('worker_timeout') == '60' %}selected{% endif %}>1 {{ t('minute') }}</option>
+                            <option value="300" {% if current_settings.get('worker_timeout') == '300' %}selected{% endif %}>5 {{ t('minutes') }}</option>
+                            <option value="600" {% if current_settings.get('worker_timeout') == '600' %}selected{% endif %}>10 {{ t('minutes') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('worker_timeout_description') }}</div>
+                    </div>
+
+                    <!-- Memory Limit -->
+                    <div class="setting-group">
+                        <label for="memory_limit" class="setting-label">
+                            <i data-feather="hard-drive"></i>
+                            {{ t('memory_limit') }}
+                        </label>
+                        <select id="memory_limit" name="memory_limit" class="setting-select">
+                            <option value="512" {% if current_settings.get('memory_limit') == '512' %}selected{% endif %}>512 MB</option>
+                            <option value="1024" {% if current_settings.get('memory_limit') == '1024' %}selected{% endif %}>1 GB</option>
+                            <option value="2048" {% if current_settings.get('memory_limit') == '2048' %}selected{% endif %}>2 GB</option>
+                            <option value="4096" {% if current_settings.get('memory_limit') == '4096' %}selected{% endif %}>4 GB</option>
+                            <option value="unlimited" {% if current_settings.get('memory_limit') == 'unlimited' %}selected{% endif %}>{{ t('unlimited') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('memory_limit_description') }}</div>
+                    </div>
+
+                    <!-- Disk Cache Size -->
+                    <div class="setting-group">
+                        <label for="disk_cache_size" class="setting-label">
+                            <i data-feather="database"></i>
+                            {{ t('disk_cache_size') }}
+                        </label>
+                        <select id="disk_cache_size" name="disk_cache_size" class="setting-select">
+                            <option value="100" {% if current_settings.get('disk_cache_size') == '100' %}selected{% endif %}>100 MB</option>
+                            <option value="500" {% if current_settings.get('disk_cache_size') == '500' %}selected{% endif %}>500 MB</option>
+                            <option value="1000" {% if current_settings.get('disk_cache_size') == '1000' %}selected{% endif %}>1 GB</option>
+                            <option value="5000" {% if current_settings.get('disk_cache_size') == '5000' %}selected{% endif %}>5 GB</option>
+                        </select>
+                        <div class="setting-description">{{ t('disk_cache_size_description') }}</div>
+                    </div>
+
+                    <!-- Auto Cleanup -->
+                    <div class="setting-group">
+                        <label for="auto_cleanup" class="setting-label">
+                            <i data-feather="trash-2"></i>
+                            {{ t('auto_cleanup') }}
+                        </label>
+                        <select id="auto_cleanup" name="auto_cleanup" class="setting-select">
+                            <option value="true" {% if current_settings.get('auto_cleanup') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('auto_cleanup') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('auto_cleanup_description') }}</div>
+                    </div>
+
+                    <!-- Cleanup Interval -->
+                    <div class="setting-group">
+                        <label for="cleanup_interval" class="setting-label">
+                            <i data-feather="repeat"></i>
+                            {{ t('cleanup_interval') }}
+                        </label>
+                        <select id="cleanup_interval" name="cleanup_interval" class="setting-select">
+                            <option value="daily" {% if current_settings.get('cleanup_interval') == 'daily' %}selected{% endif %}>{{ t('daily') }}</option>
+                            <option value="weekly" {% if current_settings.get('cleanup_interval') == 'weekly' %}selected{% endif %}>{{ t('weekly') }}</option>
+                            <option value="monthly" {% if current_settings.get('cleanup_interval') == 'monthly' %}selected{% endif %}>{{ t('monthly') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('cleanup_interval_description') }}</div>
+                    </div>
+                </div>
+
+                <!-- Performance Tools -->
+                <div class="setting-group">
+                    <h4 class="subsection-title">
+                        <i data-feather="zap"></i>
+                        {{ t('performance_tools') }}
+                    </h4>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-outline" onclick="optimizeSystem()">
+                            <i data-feather="zap"></i>
+                            {{ t('optimize_system') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="clearCache()">
+                            <i data-feather="trash-2"></i>
+                            {{ t('clear_cache') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="restartServices()">
+                            <i data-feather="refresh-cw"></i>
+                            {{ t('restart_services') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring Tab -->
+        <div id="monitoring" class="tab-content">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="bar-chart"></i>
+                    {{ t('monitoring_settings') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('monitoring_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('monitoring_description') }}
+                    </div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- Enable System Monitoring -->
+                    <div class="setting-group">
+                        <label for="enable_monitoring" class="setting-label">
+                            <i data-feather="activity"></i>
+                            {{ t('enable_monitoring') }}
+                        </label>
+                        <select id="enable_monitoring" name="enable_monitoring" class="setting-select">
+                            <option value="true" {% if current_settings.get('enable_monitoring') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('enable_monitoring') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('enable_monitoring_description') }}</div>
+                    </div>
+
+                    <!-- Monitoring Interval -->
+                    <div class="setting-group">
+                        <label for="monitoring_interval" class="setting-label">
+                            <i data-feather="clock"></i>
+                            {{ t('monitoring_interval') }}
+                        </label>
+                        <select id="monitoring_interval" name="monitoring_interval" class="setting-select">
+                            <option value="5" {% if current_settings.get('monitoring_interval') == '5' %}selected{% endif %}>5 {{ t('seconds') }}</option>
+                            <option value="10" {% if current_settings.get('monitoring_interval') == '10' %}selected{% endif %}>10 {{ t('seconds') }}</option>
+                            <option value="30" {% if current_settings.get('monitoring_interval') == '30' %}selected{% endif %}>30 {{ t('seconds') }}</option>
+                            <option value="60" {% if current_settings.get('monitoring_interval') == '60' %}selected{% endif %}>1 {{ t('minute') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('monitoring_interval_description') }}</div>
+                    </div>
+
+                    <!-- CPU Alert Threshold -->
+                    <div class="setting-group">
+                        <label for="cpu_alert_threshold" class="setting-label">
+                            <i data-feather="cpu"></i>
+                            {{ t('cpu_alert_threshold') }}
+                        </label>
+                        <select id="cpu_alert_threshold" name="cpu_alert_threshold" class="setting-select">
+                            <option value="70" {% if current_settings.get('cpu_alert_threshold') == '70' %}selected{% endif %}>70%</option>
+                            <option value="80" {% if current_settings.get('cpu_alert_threshold') == '80' %}selected{% endif %}>80%</option>
+                            <option value="90" {% if current_settings.get('cpu_alert_threshold') == '90' %}selected{% endif %}>90%</option>
+                            <option value="95" {% if current_settings.get('cpu_alert_threshold') == '95' %}selected{% endif %}>95%</option>
+                        </select>
+                        <div class="setting-description">{{ t('cpu_alert_threshold_description') }}</div>
+                    </div>
+
+                    <!-- Memory Alert Threshold -->
+                    <div class="setting-group">
+                        <label for="memory_alert_threshold" class="setting-label">
+                            <i data-feather="hard-drive"></i>
+                            {{ t('memory_alert_threshold') }}
+                        </label>
+                        <select id="memory_alert_threshold" name="memory_alert_threshold" class="setting-select">
+                            <option value="70" {% if current_settings.get('memory_alert_threshold') == '70' %}selected{% endif %}>70%</option>
+                            <option value="80" {% if current_settings.get('memory_alert_threshold') == '80' %}selected{% endif %}>80%</option>
+                            <option value="90" {% if current_settings.get('memory_alert_threshold') == '90' %}selected{% endif %}>90%</option>
+                            <option value="95" {% if current_settings.get('memory_alert_threshold') == '95' %}selected{% endif %}>95%</option>
+                        </select>
+                        <div class="setting-description">{{ t('memory_alert_threshold_description') }}</div>
+                    </div>
+
+                    <!-- Disk Alert Threshold -->
+                    <div class="setting-group">
+                        <label for="disk_alert_threshold" class="setting-label">
+                            <i data-feather="database"></i>
+                            {{ t('disk_alert_threshold') }}
+                        </label>
+                        <select id="disk_alert_threshold" name="disk_alert_threshold" class="setting-select">
+                            <option value="80" {% if current_settings.get('disk_alert_threshold') == '80' %}selected{% endif %}>80%</option>
+                            <option value="85" {% if current_settings.get('disk_alert_threshold') == '85' %}selected{% endif %}>85%</option>
+                            <option value="90" {% if current_settings.get('disk_alert_threshold') == '90' %}selected{% endif %}>90%</option>
+                            <option value="95" {% if current_settings.get('disk_alert_threshold') == '95' %}selected{% endif %}>95%</option>
+                        </select>
+                        <div class="setting-description">{{ t('disk_alert_threshold_description') }}</div>
+                    </div>
+
+                    <!-- Alert Notifications -->
+                    <div class="setting-group">
+                        <label for="alert_notifications" class="setting-label">
+                            <i data-feather="bell"></i>
+                            {{ t('alert_notifications') }}
+                        </label>
+                        <select id="alert_notifications" name="alert_notifications" class="setting-select">
+                            <option value="true" {% if current_settings.get('alert_notifications') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('alert_notifications') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('alert_notifications_description') }}</div>
+                    </div>
+                </div>
+
+                <!-- Monitoring Tools -->
+                <div class="setting-group">
+                    <h4 class="subsection-title">
+                        <i data-feather="activity"></i>
+                        {{ t('monitoring_tools') }}
+                    </h4>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-outline" onclick="viewSystemStats()">
+                            <i data-feather="bar-chart"></i>
+                            {{ t('view_system_stats') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="exportMetrics()">
+                            <i data-feather="download"></i>
+                            {{ t('export_metrics') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="resetMetrics()">
+                            <i data-feather="rotate-ccw"></i>
+                            {{ t('reset_metrics') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Development Tab -->
+        <div id="development" class="tab-content">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="code"></i>
+                    {{ t('development_settings') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('development_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('development_description') }}
+                    </div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- Debug Mode -->
+                    <div class="setting-group">
+                        <label for="debug_mode" class="setting-label">
+                            <i data-feather="tool"></i>
+                            {{ t('debug_mode') }}
+                        </label>
+                        <select id="debug_mode" name="debug_mode" class="setting-select">
+                            <option value="true" {% if current_settings.get('debug_mode') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('debug_mode') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('debug_mode_description') }}</div>
+                    </div>
+
+                    <!-- Testing Features -->
+                    <div class="setting-group">
+                        <label for="enable_testing_features" class="setting-label">
+                            <i data-feather="check-square"></i>
+                            {{ t('enable_testing_features') }}
+                        </label>
+                        <select id="enable_testing_features" name="enable_testing_features" class="setting-select">
+                            <option value="true" {% if current_settings.get('enable_testing_features') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('enable_testing_features') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('enable_testing_features_description') }}</div>
+                    </div>
+
+                    <!-- Detailed Logging -->
+                    <div class="setting-group">
+                        <label for="detailed_logging" class="setting-label">
+                            <i data-feather="file-text"></i>
+                            {{ t('detailed_logging') }}
+                        </label>
+                        <select id="detailed_logging" name="detailed_logging" class="setting-select">
+                            <option value="true" {% if current_settings.get('detailed_logging') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('detailed_logging') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('detailed_logging_description') }}</div>
+                    </div>
+
+                    <!-- API Rate Limiting -->
+                    <div class="setting-group">
+                        <label for="api_rate_limiting" class="setting-label">
+                            <i data-feather="shield"></i>
+                            {{ t('api_rate_limiting') }}
+                        </label>
+                        <select id="api_rate_limiting" name="api_rate_limiting" class="setting-select">
+                            <option value="true" {% if current_settings.get('api_rate_limiting') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('api_rate_limiting') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('api_rate_limiting_description') }}</div>
+                    </div>
+
+                    <!-- Maintenance Mode -->
+                    <div class="setting-group">
+                        <label for="maintenance_mode" class="setting-label">
+                            <i data-feather="tool"></i>
+                            {{ t('maintenance_mode') }}
+                        </label>
+                        <select id="maintenance_mode" name="maintenance_mode" class="setting-select">
+                            <option value="true" {% if current_settings.get('maintenance_mode') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('maintenance_mode') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('maintenance_mode_description') }}</div>
+                    </div>
+
+                    <!-- Backup Retention -->
+                    <div class="setting-group">
+                        <label for="backup_retention" class="setting-label">
+                            <i data-feather="archive"></i>
+                            {{ t('backup_retention') }}
+                        </label>
+                        <select id="backup_retention" name="backup_retention" class="setting-select">
+                            <option value="7" {% if current_settings.get('backup_retention') == '7' %}selected{% endif %}>7 {{ t('days') }}</option>
+                            <option value="14" {% if current_settings.get('backup_retention') == '14' %}selected{% endif %}>14 {{ t('days') }}</option>
+                            <option value="30" {% if current_settings.get('backup_retention') == '30' %}selected{% endif %}>30 {{ t('days') }}</option>
+                            <option value="90" {% if current_settings.get('backup_retention') == '90' %}selected{% endif %}>90 {{ t('days') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('backup_retention_description') }}</div>
+                    </div>
+                </div>
+
+                <!-- Development Tools -->
+                <div class="setting-group">
+                    <h4 class="subsection-title">
+                        <i data-feather="terminal"></i>
+                        {{ t('development_tools') }}
+                    </h4>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-outline" onclick="createSampleData()">
+                            <i data-feather="database"></i>
+                            {{ t('create_sample_data') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="clearSampleData()">
+                            <i data-feather="trash-2"></i>
+                            {{ t('clear_sample_data') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="runDiagnostics()">
+                            <i data-feather="activity"></i>
+                            {{ t('run_diagnostics') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="exportLogs()">
+                            <i data-feather="download"></i>
+                            {{ t('export_logs') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="resetDatabase()">
+                            <i data-feather="rotate-ccw"></i>
+                            {{ t('reset_database') }}
+                        </button>
+                        <button type="button" class="btn btn-outline danger" onclick="factoryReset()">
+                            <i data-feather="alert-triangle"></i>
+                            {{ t('factory_reset') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i data-feather="save"></i>
+                {{ t('save_settings') }}
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+.sub-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0;
+}
+
+.sub-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-radius: 8px 8px 0 0;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    border-bottom: none;
+    position: relative;
+    bottom: -1px;
+}
+
+.sub-tab:hover {
+    color: var(--accent-primary);
+    background: var(--bg-secondary);
+}
+
+.sub-tab.active {
+    color: var(--accent-primary);
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+    border-bottom: 1px solid var(--bg-primary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.settings-grid.two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.btn-outline:hover {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.btn-outline.danger {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.btn-outline.danger:hover {
+    background: #ef4444;
+    color: white;
+}
+
+.subsection-title {
+    margin: 24px 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@media (max-width: 768px) {
+    .settings-grid.two-columns {
+        grid-template-columns: 1fr;
+    }
+    
+    .sub-tabs {
+        flex-direction: column;
+    }
+    
+    .sub-tab {
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 8px;
+    }
+    
+    .sub-tab.active {
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+function showSystemTab(tabId, element) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.sub-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabId).classList.add('active');
+    
+    // Add active class to clicked tab
+    element.classList.add('active');
+}
+
+// Performance tools
+async function optimizeSystem() {
+    if (confirm('{{ t("optimize_system_confirm") }}')) {
+        try {
+            const response = await fetch('/api/system-optimize', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || 'System optimization completed');
+        } catch (error) {
+            alert('Optimization failed: ' + error.message);
+        }
+    }
+}
+
+async function clearCache() {
+    if (confirm('{{ t("clear_cache_confirm") }}')) {
+        try {
+            const response = await fetch('/api/system-clear-cache', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || 'Cache cleared successfully');
+        } catch (error) {
+            alert('Cache clear failed: ' + error.message);
+        }
+    }
+}
+
+async function restartServices() {
+    if (confirm('{{ t("restart_services_confirm") }}')) {
+        try {
+            const response = await fetch('/api/system-restart-services', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || 'Services restarted successfully');
+        } catch (error) {
+            alert('Service restart failed: ' + error.message);
+        }
+    }
+}
+
+// Monitoring tools
+async function viewSystemStats() {
+    window.open('/system-monitor', '_blank');
+}
+
+async function exportMetrics() {
+    try {
+        const response = await fetch('/api/export-metrics');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'system-metrics.csv';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        alert('Export failed: ' + error.message);
+    }
+}
+
+async function resetMetrics() {
+    if (confirm('{{ t("reset_metrics_confirm") }}')) {
+        try {
+            const response = await fetch('/api/reset-metrics', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || 'Metrics reset successfully');
+        } catch (error) {
+            alert('Metrics reset failed: ' + error.message);
+        }
+    }
+}
+
+// Development tools
+async function createSampleData() {
+    if (confirm('{{ t("create_sample_data_confirm") }}')) {
+        try {
+            const response = await fetch('/api/create-sample-data', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || 'Sample data created successfully');
+        } catch (error) {
+            alert('Sample data creation failed: ' + error.message);
+        }
+    }
+}
+
+async function clearSampleData() {
+    if (confirm('{{ t("clear_sample_data_confirm") }}')) {
+        try {
+            const response = await fetch('/api/clear-sample-data', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || 'Sample data cleared successfully');
+        } catch (error) {
+            alert('Sample data clear failed: ' + error.message);
+        }
+    }
+}
+
+async function runDiagnostics() {
+    try {
+        const response = await fetch('/api/run-diagnostics', { method: 'POST' });
+        const result = await response.json();
+        alert(result.message || 'Diagnostics completed');
+    } catch (error) {
+        alert('Diagnostics failed: ' + error.message);
+    }
+}
+
+async function exportLogs() {
+    try {
+        const response = await fetch('/api/export-logs');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'system-logs.zip';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        alert('Export failed: ' + error.message);
+    }
+}
+
+async function resetDatabase() {
+    if (confirm('{{ t("reset_database_confirm") }}') && confirm('{{ t("reset_database_final_confirm") }}')) {
+        try {
+            const response = await fetch('/api/reset-database', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || 'Database reset successfully');
+            window.location.reload();
+        } catch (error) {
+            alert('Database reset failed: ' + error.message);
+        }
+    }
+}
+
+// Performance Tab Functions
+async function optimizeSystem() {
+    try {
+        const response = await fetch('/api/optimize-system', { method: 'POST' });
+        const result = await response.json();
+        alert(result.message || '{{ t("system_optimized") }}');
+    } catch (error) {
+        alert('{{ t("optimization_failed") }}: ' + error.message);
+    }
+}
+
+async function clearCache() {
+    if (confirm('{{ t("clear_cache_confirm") }}')) {
+        try {
+            const response = await fetch('/api/clear-cache', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || '{{ t("cache_cleared") }}');
+        } catch (error) {
+            alert('{{ t("cache_clear_failed") }}: ' + error.message);
+        }
+    }
+}
+
+async function restartServices() {
+    if (confirm('{{ t("restart_services_confirm") }}')) {
+        try {
+            const response = await fetch('/api/restart-services', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || '{{ t("services_restarted") }}');
+        } catch (error) {
+            alert('{{ t("restart_failed") }}: ' + error.message);
+        }
+    }
+}
+
+// Monitoring Tab Functions
+async function viewSystemStats() {
+    window.open('/system-monitor-advanced', '_blank');
+}
+
+async function exportMetrics() {
+    try {
+        const response = await fetch('/api/system-export');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'system-metrics.json';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        alert('{{ t("metrics_exported") }}');
+    } catch (error) {
+        alert('{{ t("export_failed") }}: ' + error.message);
+    }
+}
+
+async function resetMetrics() {
+    if (confirm('{{ t("reset_metrics_confirm") }}')) {
+        try {
+            const response = await fetch('/api/reset-metrics', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || '{{ t("metrics_reset") }}');
+        } catch (error) {
+            alert('{{ t("reset_failed") }}: ' + error.message);
+        }
+    }
+}
+
+// Development Tab Functions
+async function createSampleData() {
+    try {
+        const response = await fetch('/api/create-sample-data', { method: 'POST' });
+        const result = await response.json();
+        alert(result.message || '{{ t("sample_data_created") }}');
+    } catch (error) {
+        alert('{{ t("sample_data_failed") }}: ' + error.message);
+    }
+}
+
+async function clearSampleData() {
+    if (confirm('{{ t("clear_sample_data_confirm") }}')) {
+        try {
+            const response = await fetch('/api/clear-sample-data', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || '{{ t("sample_data_cleared") }}');
+        } catch (error) {
+            alert('{{ t("clear_sample_failed") }}: ' + error.message);
+        }
+    }
+}
+
+async function runDiagnostics() {
+    try {
+        const response = await fetch('/api/run-diagnostics', { method: 'POST' });
+        const result = await response.json();
+        alert(result.message || '{{ t("diagnostics_completed") }}');
+    } catch (error) {
+        alert('{{ t("diagnostics_failed") }}: ' + error.message);
+    }
+}
+
+async function factoryReset() {
+    if (confirm('{{ t("factory_reset_confirm") }}') && 
+        confirm('{{ t("factory_reset_final_confirm") }}') &&
+        confirm('{{ t("factory_reset_last_warning") }}')) {
+        try {
+            const response = await fetch('/api/factory-reset', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || 'Factory reset completed');
+            window.location.href = '/';
+        } catch (error) {
+            alert('Factory reset failed: ' + error.message);
+        }
+    }
+}
+</script>
+{% endblock %}

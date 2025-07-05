@@ -1,0 +1,318 @@
+{% extends "layout.html" %}
+{% block title %}{{ t('settings') }} - {{ t('app_name') }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Modern Hierarchical Settings System */
+.settings-container {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 0;
+    margin: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.settings-header {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    padding: 25px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-header h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.save-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.save-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+/* Main Tabs Navigation */
+.main-tabs-navigation {
+    background: var(--bg-secondary);
+    padding: 0;
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+    display: flex;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.main-tabs-navigation::-webkit-scrollbar {
+    display: none;
+}
+
+.main-tab-button {
+    background: none;
+    border: none;
+    padding: 18px 24px;
+    color: var(--text-secondary);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: fit-content;
+    text-decoration: none;
+}
+
+.main-tab-button:hover {
+    background: rgba(var(--accent-primary-rgb), 0.1);
+    color: var(--text-primary);
+}
+
+.main-tab-button.active {
+    background: rgba(var(--accent-primary-rgb), 0.15);
+    color: var(--accent-primary);
+    border-bottom-color: var(--accent-primary);
+    font-weight: 600;
+}
+
+.main-tab-button i {
+    font-size: 18px;
+}
+
+/* Sub Tabs Navigation */
+.sub-tabs-navigation {
+    background: var(--bg-primary);
+    padding: 15px 30px;
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+    display: flex;
+    gap: 15px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.sub-tabs-navigation::-webkit-scrollbar {
+    display: none;
+}
+
+.sub-tab-button {
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    padding: 10px 18px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sub-tab-button:hover {
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+.sub-tab-button.active {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+    font-weight: 600;
+}
+
+.sub-tab-button i {
+    font-size: 14px;
+}
+
+/* Content Area */
+.settings-content {
+    padding: 30px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background: var(--bg-primary);
+    padding: 15px 30px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.breadcrumb a {
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-separator {
+    color: var(--text-secondary);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .settings-container {
+        margin: 10px;
+        border-radius: 8px;
+    }
+    
+    .settings-header {
+        padding: 20px;
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .settings-header h1 {
+        font-size: 24px;
+    }
+    
+    .main-tab-button, .sub-tab-button {
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+    
+    .settings-content {
+        padding: 20px;
+    }
+    
+    .sub-tabs-navigation {
+        padding: 15px 20px;
+    }
+    
+    .breadcrumb {
+        padding: 15px 20px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <!-- Header -->
+    <div class="settings-header">
+        <h1>
+            <i data-feather="settings"></i>
+            {{ t('application_settings') }}
+        </h1>
+        <a href="#" class="save-button" onclick="saveAllSettings(); return false;">
+            <i data-feather="save"></i>
+            {{ t('save_all') }}
+        </a>
+    </div>
+
+    <!-- Main Tabs Navigation -->
+    <div class="main-tabs-navigation">
+        <a href="{{ url_for('settings_general') }}" class="main-tab-button {{ 'active' if current_section == 'general' else '' }}">
+            <i data-feather="settings"></i>
+            {{ t('general_settings') }}
+        </a>
+
+        <a href="{{ url_for('settings_ai') }}" class="main-tab-button {{ 'active' if current_section == 'ai' else '' }}">
+            <i data-feather="cpu"></i>
+            {{ t('ai_models') }}
+        </a>
+        <a href="{{ url_for('settings_paths') }}" class="main-tab-button {{ 'active' if current_section == 'paths' else '' }}">
+            <i data-feather="folder"></i>
+            {{ t('file_paths') }}
+        </a>
+        <a href="{{ url_for('settings_media') }}" class="main-tab-button {{ 'active' if current_section == 'media' else '' }}">
+            <i data-feather="tv"></i>
+            {{ t('media_servers') }}
+        </a>
+        <a href="{{ url_for('settings_corrections') }}" class="main-tab-button {{ 'active' if current_section == 'corrections' else '' }}">
+            <i data-feather="edit-3"></i>
+            {{ t('corrections') }}
+        </a>
+        <a href="{{ url_for('settings_system') }}" class="main-tab-button {{ 'active' if current_section == 'system' else '' }}">
+            <i data-feather="monitor"></i>
+            {{ t('system') }}
+        </a>
+    </div>
+
+    <!-- Sub Tabs Navigation (if applicable) -->
+    {% if sub_tabs %}
+    <div class="sub-tabs-navigation">
+        {% for sub_tab in sub_tabs %}
+        <a href="{{ sub_tab.url }}" class="sub-tab-button {{ 'active' if current_subsection == sub_tab.key else '' }}">
+            <i data-feather="{{ sub_tab.icon }}"></i>
+            {{ t(sub_tab.label) }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="{{ url_for('dashboard') }}">{{ t('dashboard') }}</a>
+        <span class="breadcrumb-separator">›</span>
+        <a href="{{ url_for('settings_general') }}">{{ t('settings') }}</a>
+        {% if current_section %}
+        <span class="breadcrumb-separator">›</span>
+        <span>{{ t(current_section + '_settings' if current_section != 'general' else 'general_settings') }}</span>
+        {% endif %}
+        {% if current_subsection %}
+        <span class="breadcrumb-separator">›</span>
+        <span>{{ t(current_subsection) }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Content Area -->
+    <div class="settings-content">
+        {% block settings_content %}{% endblock %}
+    </div>
+</div>
+
+<script>
+function saveAllSettings() {
+    const form = document.querySelector('form');
+    if (form) {
+        // Show loading state
+        const saveButton = document.querySelector('.save-button');
+        const originalHTML = saveButton.innerHTML;
+        saveButton.innerHTML = '<i data-feather="loader"></i> {{ t("saving") }}...';
+        
+        // Submit form
+        form.submit();
+    }
+}
+
+// Initialize Feather icons
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+});
+</script>
+{% endblock %}

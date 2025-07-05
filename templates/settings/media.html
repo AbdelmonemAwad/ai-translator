@@ -1,0 +1,995 @@
+{% extends "settings/layout.html" %}
+
+{% block title %}{{ t('media_servers_settings') }}{% endblock %}
+
+{% block settings_content %}
+<div class="settings-content">
+    <div class="settings-header">
+        <div class="header-icon">
+            <i data-feather="server"></i>
+        </div>
+        <div class="header-content">
+            <h2>{{ t('media_servers_settings') }}</h2>
+            <p>{{ t('media_servers_description') }}</p>
+        </div>
+    </div>
+
+    <!-- Sub-tabs for Media section -->
+    <div class="sub-tabs">
+        <a href="#streaming" class="sub-tab active" onclick="showMediaTab('streaming', this)">
+            <i data-feather="play"></i>
+            {{ t('streaming_servers') }}
+        </a>
+        <a href="#management" class="sub-tab" onclick="showMediaTab('management', this)">
+            <i data-feather="database"></i>
+            {{ t('content_management') }}
+        </a>
+        <a href="#testing" class="sub-tab" onclick="showMediaTab('testing', this)">
+            <i data-feather="check-circle"></i>
+            {{ t('connection_testing') }}
+        </a>
+    </div>
+
+    <form method="post" action="{{ url_for('settings_media', subsection=current_subsection) }}">
+        <!-- Streaming Servers Tab -->
+        <div id="streaming" class="tab-content active">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="play"></i>
+                    {{ t('streaming_servers') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('streaming_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('streaming_description') }}
+                    </div>
+                </div>
+
+                <!-- Plex Configuration -->
+                <div class="server-card">
+                    <div class="server-header">
+                        <div class="server-icon">
+                            <i data-feather="play-circle" style="color: #e5a00d;"></i>
+                        </div>
+                        <div class="server-info">
+                            <h4>Plex Media Server</h4>
+                            <p>{{ t('plex_description') }}</p>
+                        </div>
+                        <div class="server-toggle">
+                            <select name="plex_enabled" class="setting-select compact">
+                                <option value="true" {% if current_settings.get('plex_enabled') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                                <option value="false" {% if current_settings.get('plex_enabled') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="server-settings">
+                        <div class="settings-grid three-columns">
+                            <div class="setting-group">
+                                <label for="plex_url" class="setting-label">
+                                    <i data-feather="globe"></i>
+                                    {{ t('server_url') }}
+                                </label>
+                                <input type="url" 
+                                       id="plex_url" 
+                                       name="plex_url" 
+                                       value="{{ current_settings.get('plex_url', 'http://localhost:32400') }}" 
+                                       class="setting-input"
+                                       placeholder="http://localhost:32400">
+                            </div>
+                            <div class="setting-group">
+                                <label for="plex_token" class="setting-label">
+                                    <i data-feather="key"></i>
+                                    {{ t('api_token') }}
+                                </label>
+                                <input type="password" 
+                                       id="plex_token" 
+                                       name="plex_token" 
+                                       value="{{ current_settings.get('plex_token', '') }}" 
+                                       class="setting-input"
+                                       placeholder="X-Plex-Token">
+                            </div>
+                            <div class="setting-group">
+                                <label for="plex_library" class="setting-label">
+                                    <i data-feather="folder"></i>
+                                    {{ t('library_section') }}
+                                </label>
+                                <input type="text" 
+                                       id="plex_library" 
+                                       name="plex_library" 
+                                       value="{{ current_settings.get('plex_library', '1') }}" 
+                                       class="setting-input"
+                                       placeholder="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Jellyfin Configuration -->
+                <div class="server-card">
+                    <div class="server-header">
+                        <div class="server-icon">
+                            <i data-feather="monitor" style="color: #00a4dc;"></i>
+                        </div>
+                        <div class="server-info">
+                            <h4>Jellyfin Media Server</h4>
+                            <p>{{ t('jellyfin_description') }}</p>
+                        </div>
+                        <div class="server-toggle">
+                            <select name="jellyfin_enabled" class="setting-select compact">
+                                <option value="true" {% if current_settings.get('jellyfin_enabled') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                                <option value="false" {% if current_settings.get('jellyfin_enabled') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="server-settings">
+                        <div class="settings-grid three-columns">
+                            <div class="setting-group">
+                                <label for="jellyfin_url" class="setting-label">
+                                    <i data-feather="globe"></i>
+                                    {{ t('server_url') }}
+                                </label>
+                                <input type="url" 
+                                       id="jellyfin_url" 
+                                       name="jellyfin_url" 
+                                       value="{{ current_settings.get('jellyfin_url', 'http://localhost:8096') }}" 
+                                       class="setting-input"
+                                       placeholder="http://localhost:8096">
+                            </div>
+                            <div class="setting-group">
+                                <label for="jellyfin_api_key" class="setting-label">
+                                    <i data-feather="key"></i>
+                                    {{ t('api_key') }}
+                                </label>
+                                <input type="password" 
+                                       id="jellyfin_api_key" 
+                                       name="jellyfin_api_key" 
+                                       value="{{ current_settings.get('jellyfin_api_key', '') }}" 
+                                       class="setting-input"
+                                       placeholder="API Key">
+                            </div>
+                            <div class="setting-group">
+                                <label for="jellyfin_user_id" class="setting-label">
+                                    <i data-feather="user"></i>
+                                    {{ t('user_id') }}
+                                </label>
+                                <input type="text" 
+                                       id="jellyfin_user_id" 
+                                       name="jellyfin_user_id" 
+                                       value="{{ current_settings.get('jellyfin_user_id', '') }}" 
+                                       class="setting-input"
+                                       placeholder="User ID">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emby Configuration -->
+                <div class="server-card">
+                    <div class="server-header">
+                        <div class="server-icon">
+                            <i data-feather="tv" style="color: #52b54b;"></i>
+                        </div>
+                        <div class="server-info">
+                            <h4>Emby Media Server</h4>
+                            <p>{{ t('emby_description') }}</p>
+                        </div>
+                        <div class="server-toggle">
+                            <select name="emby_enabled" class="setting-select compact">
+                                <option value="true" {% if current_settings.get('emby_enabled') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                                <option value="false" {% if current_settings.get('emby_enabled') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="server-settings">
+                        <div class="settings-grid three-columns">
+                            <div class="setting-group">
+                                <label for="emby_url" class="setting-label">
+                                    <i data-feather="globe"></i>
+                                    {{ t('server_url') }}
+                                </label>
+                                <input type="url" 
+                                       id="emby_url" 
+                                       name="emby_url" 
+                                       value="{{ current_settings.get('emby_url', 'http://localhost:8096') }}" 
+                                       class="setting-input"
+                                       placeholder="http://localhost:8096">
+                            </div>
+                            <div class="setting-group">
+                                <label for="emby_api_key" class="setting-label">
+                                    <i data-feather="key"></i>
+                                    {{ t('api_key') }}
+                                </label>
+                                <input type="password" 
+                                       id="emby_api_key" 
+                                       name="emby_api_key" 
+                                       value="{{ current_settings.get('emby_api_key', '') }}" 
+                                       class="setting-input"
+                                       placeholder="API Key">
+                            </div>
+                            <div class="setting-group">
+                                <label for="emby_user_id" class="setting-label">
+                                    <i data-feather="user"></i>
+                                    {{ t('user_id') }}
+                                </label>
+                                <input type="text" 
+                                       id="emby_user_id" 
+                                       name="emby_user_id" 
+                                       value="{{ current_settings.get('emby_user_id', '') }}" 
+                                       class="setting-input"
+                                       placeholder="User ID">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kodi Configuration -->
+                <div class="server-card">
+                    <div class="server-header">
+                        <div class="server-icon">
+                            <i data-feather="smartphone" style="color: #17b2e7;"></i>
+                        </div>
+                        <div class="server-info">
+                            <h4>Kodi Media Center</h4>
+                            <p>{{ t('kodi_description') }}</p>
+                        </div>
+                        <div class="server-toggle">
+                            <select name="kodi_enabled" class="setting-select compact">
+                                <option value="true" {% if current_settings.get('kodi_enabled') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                                <option value="false" {% if current_settings.get('kodi_enabled') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="server-settings">
+                        <div class="settings-grid three-columns">
+                            <div class="setting-group">
+                                <label for="kodi_url" class="setting-label">
+                                    <i data-feather="globe"></i>
+                                    {{ t('server_url') }}
+                                </label>
+                                <input type="url" 
+                                       id="kodi_url" 
+                                       name="kodi_url" 
+                                       value="{{ current_settings.get('kodi_url', 'http://localhost:8080') }}" 
+                                       class="setting-input"
+                                       placeholder="http://localhost:8080">
+                            </div>
+                            <div class="setting-group">
+                                <label for="kodi_username" class="setting-label">
+                                    <i data-feather="user"></i>
+                                    {{ t('username') }}
+                                </label>
+                                <input type="text" 
+                                       id="kodi_username" 
+                                       name="kodi_username" 
+                                       value="{{ current_settings.get('kodi_username', 'kodi') }}" 
+                                       class="setting-input"
+                                       placeholder="kodi">
+                            </div>
+                            <div class="setting-group">
+                                <label for="kodi_password" class="setting-label">
+                                    <i data-feather="lock"></i>
+                                    {{ t('password') }}
+                                </label>
+                                <input type="password" 
+                                       id="kodi_password" 
+                                       name="kodi_password" 
+                                       value="{{ current_settings.get('kodi_password', '') }}" 
+                                       class="setting-input"
+                                       placeholder="••••••••">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Management Tab -->
+        <div id="management" class="tab-content">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="database"></i>
+                    {{ t('content_management') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('management_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('management_description') }}
+                    </div>
+                </div>
+
+                <!-- Radarr Configuration -->
+                <div class="server-card">
+                    <div class="server-header">
+                        <div class="server-icon">
+                            <i data-feather="film" style="color: #ffc230;"></i>
+                        </div>
+                        <div class="server-info">
+                            <h4>Radarr</h4>
+                            <p>{{ t('radarr_description') }}</p>
+                        </div>
+                        <div class="server-toggle">
+                            <select name="radarr_enabled" class="setting-select compact">
+                                <option value="true" {% if current_settings.get('radarr_enabled') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                                <option value="false" {% if current_settings.get('radarr_enabled') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="server-settings">
+                        <div class="settings-grid three-columns">
+                            <div class="setting-group">
+                                <label for="radarr_url" class="setting-label">
+                                    <i data-feather="globe"></i>
+                                    {{ t('server_url') }}
+                                </label>
+                                <input type="url" 
+                                       id="radarr_url" 
+                                       name="radarr_url" 
+                                       value="{{ current_settings.get('radarr_url', 'http://localhost:7878') }}" 
+                                       class="setting-input"
+                                       placeholder="http://localhost:7878">
+                            </div>
+                            <div class="setting-group">
+                                <label for="radarr_api_key" class="setting-label">
+                                    <i data-feather="key"></i>
+                                    {{ t('api_key') }}
+                                </label>
+                                <input type="password" 
+                                       id="radarr_api_key" 
+                                       name="radarr_api_key" 
+                                       value="{{ current_settings.get('radarr_api_key', '') }}" 
+                                       class="setting-input"
+                                       placeholder="API Key">
+                            </div>
+                            <div class="setting-group">
+                                <label for="radarr_quality_profile" class="setting-label">
+                                    <i data-feather="star"></i>
+                                    {{ t('quality_profile') }}
+                                </label>
+                                <div class="input-group">
+                                    <select id="radarr_quality_profile" name="radarr_quality_profile" class="setting-select" disabled>
+                                        <option value="">جاري التحميل... Loading...</option>
+                                    </select>
+                                    <button type="button" class="btn-secondary" onclick="refreshRadarrProfiles()" title="تحديث قائمة الجودة">
+                                        <i data-feather="refresh-cw"></i>
+                                    </button>
+                                    <button type="button" class="btn-primary" onclick="selectAllProfiles('radarr')" title="اختيار الكل">
+                                        <i data-feather="check-square"></i>
+                                    </button>
+                                    <button type="button" class="btn-outline" onclick="clearAllProfiles('radarr')" title="مسح الكل">
+                                        <i data-feather="square"></i>
+                                    </button>
+                                </div>
+                                <div id="radarr_quality_status" class="setting-description"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sonarr Configuration -->
+                <div class="server-card">
+                    <div class="server-header">
+                        <div class="server-icon">
+                            <i data-feather="monitor" style="color: #35c5f4;"></i>
+                        </div>
+                        <div class="server-info">
+                            <h4>Sonarr</h4>
+                            <p>{{ t('sonarr_description') }}</p>
+                        </div>
+                        <div class="server-toggle">
+                            <select name="sonarr_enabled" class="setting-select compact">
+                                <option value="true" {% if current_settings.get('sonarr_enabled') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                                <option value="false" {% if current_settings.get('sonarr_enabled') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="server-settings">
+                        <div class="settings-grid three-columns">
+                            <div class="setting-group">
+                                <label for="sonarr_url" class="setting-label">
+                                    <i data-feather="globe"></i>
+                                    {{ t('server_url') }}
+                                </label>
+                                <input type="url" 
+                                       id="sonarr_url" 
+                                       name="sonarr_url" 
+                                       value="{{ current_settings.get('sonarr_url', 'http://localhost:8989') }}" 
+                                       class="setting-input"
+                                       placeholder="http://localhost:8989">
+                            </div>
+                            <div class="setting-group">
+                                <label for="sonarr_api_key" class="setting-label">
+                                    <i data-feather="key"></i>
+                                    {{ t('api_key') }}
+                                </label>
+                                <input type="password" 
+                                       id="sonarr_api_key" 
+                                       name="sonarr_api_key" 
+                                       value="{{ current_settings.get('sonarr_api_key', '') }}" 
+                                       class="setting-input"
+                                       placeholder="API Key">
+                            </div>
+                            <div class="setting-group">
+                                <label for="sonarr_quality_profile" class="setting-label">
+                                    <i data-feather="star"></i>
+                                    {{ t('quality_profile') }}
+                                </label>
+                                <div class="input-group">
+                                    <select id="sonarr_quality_profile" name="sonarr_quality_profile" class="setting-select" disabled>
+                                        <option value="">جاري التحميل... Loading...</option>
+                                    </select>
+                                    <button type="button" class="btn-secondary" onclick="refreshSonarrProfiles()" title="تحديث قائمة الجودة">
+                                        <i data-feather="refresh-cw"></i>
+                                    </button>
+                                    <button type="button" class="btn-primary" onclick="selectAllProfiles('sonarr')" title="اختيار الكل">
+                                        <i data-feather="check-square"></i>
+                                    </button>
+                                    <button type="button" class="btn-outline" onclick="clearAllProfiles('sonarr')" title="مسح الكل">
+                                        <i data-feather="square"></i>
+                                    </button>
+                                </div>
+                                <div id="sonarr_quality_status" class="setting-description"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Connection Testing Tab -->
+        <div id="testing" class="tab-content">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="check-circle"></i>
+                    {{ t('connection_testing') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('testing_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('testing_description') }}
+                    </div>
+                </div>
+
+                <div class="testing-grid">
+                    <!-- Streaming Services Testing -->
+                    <div class="test-category">
+                        <h4 class="category-title">
+                            <i data-feather="play"></i>
+                            {{ t('streaming_services') }}
+                        </h4>
+                        <div class="test-buttons">
+                            <button type="button" class="test-btn" onclick="testService('plex')">
+                                <i data-feather="play-circle"></i>
+                                {{ t('test_plex') }}
+                                <div class="test-status" id="plex-status"></div>
+                            </button>
+                            <button type="button" class="test-btn" onclick="testService('jellyfin')">
+                                <i data-feather="monitor"></i>
+                                {{ t('test_jellyfin') }}
+                                <div class="test-status" id="jellyfin-status"></div>
+                            </button>
+                            <button type="button" class="test-btn" onclick="testService('emby')">
+                                <i data-feather="tv"></i>
+                                {{ t('test_emby') }}
+                                <div class="test-status" id="emby-status"></div>
+                            </button>
+                            <button type="button" class="test-btn" onclick="testService('kodi')">
+                                <i data-feather="smartphone"></i>
+                                {{ t('test_kodi') }}
+                                <div class="test-status" id="kodi-status"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Management Services Testing -->
+                    <div class="test-category">
+                        <h4 class="category-title">
+                            <i data-feather="database"></i>
+                            {{ t('management_services') }}
+                        </h4>
+                        <div class="test-buttons">
+                            <button type="button" class="test-btn" onclick="testService('radarr')">
+                                <i data-feather="film"></i>
+                                {{ t('test_radarr') }}
+                                <div class="test-status" id="radarr-status"></div>
+                            </button>
+                            <button type="button" class="test-btn" onclick="testService('sonarr')">
+                                <i data-feather="monitor"></i>
+                                {{ t('test_sonarr') }}
+                                <div class="test-status" id="sonarr-status"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Operations -->
+                    <div class="test-category">
+                        <h4 class="category-title">
+                            <i data-feather="zap"></i>
+                            {{ t('bulk_operations') }}
+                        </h4>
+                        <div class="test-buttons">
+                            <button type="button" class="test-btn bulk" onclick="testAllServices()">
+                                <i data-feather="check-circle"></i>
+                                {{ t('test_all_services') }}
+                                <div class="test-status" id="all-status"></div>
+                            </button>
+                            <button type="button" class="test-btn bulk" onclick="syncAllLibraries()">
+                                <i data-feather="refresh-cw"></i>
+                                {{ t('sync_all_libraries') }}
+                                <div class="test-status" id="sync-status"></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Results -->
+                <div class="test-results" id="test-results" style="display: none;">
+                    <h4>{{ t('test_results') }}</h4>
+                    <div class="results-content" id="results-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i data-feather="save"></i>
+                {{ t('save_settings') }}
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+.sub-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0;
+}
+
+.sub-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-radius: 8px 8px 0 0;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    border-bottom: none;
+    position: relative;
+    bottom: -1px;
+}
+
+.sub-tab:hover {
+    color: var(--accent-primary);
+    background: var(--bg-secondary);
+}
+
+.sub-tab.active {
+    color: var(--accent-primary);
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+    border-bottom: 1px solid var(--bg-primary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.server-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.server-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.server-icon {
+    margin-right: 16px;
+}
+
+.server-icon i {
+    font-size: 24px;
+}
+
+.server-info {
+    flex: 1;
+}
+
+.server-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.server-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.server-toggle {
+    margin-left: 16px;
+}
+
+.setting-select.compact {
+    min-width: 120px;
+    padding: 8px 12px;
+}
+
+.server-settings {
+    padding: 20px;
+}
+
+.settings-grid.three-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+}
+
+.testing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.test-category {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.category-title {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.test-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.test-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.test-btn:hover {
+    background: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+}
+
+.test-btn.bulk {
+    background: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+}
+
+.test-btn.bulk:hover {
+    background: var(--accent-secondary);
+}
+
+.test-status {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.test-status.success {
+    background: #10b981;
+    color: white;
+}
+
+.test-status.error {
+    background: #ef4444;
+    color: white;
+}
+
+.input-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.input-group .setting-select {
+    flex: 1;
+}
+
+.input-group .btn-secondary {
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+}
+
+.input-group .btn-secondary:hover {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+}
+
+.input-group .btn-secondary i {
+    font-size: 16px;
+}
+
+.input-group .btn-primary {
+    padding: 8px 12px;
+    background: var(--accent-primary);
+    border: 1px solid var(--accent-primary);
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+}
+
+.input-group .btn-primary:hover {
+    background: var(--accent-secondary);
+    border-color: var(--accent-secondary);
+}
+
+.input-group .btn-outline {
+    padding: 8px 12px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+}
+
+.input-group .btn-outline:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.input-group .btn-primary i,
+.input-group .btn-outline i {
+    font-size: 16px;
+}
+
+/* Multiple select styling */
+.setting-select[multiple] {
+    min-height: 120px;
+    padding: 8px;
+}
+
+.setting-select[multiple] option {
+    padding: 4px 8px;
+    margin: 2px 0;
+    border-radius: 4px;
+}
+
+.setting-select[multiple] option:checked {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.test-status.testing {
+    background: #f59e0b;
+    color: white;
+}
+
+.test-results {
+    margin-top: 24px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.results-content {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    font-family: monospace;
+    font-size: 14px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .settings-grid.three-columns {
+        grid-template-columns: 1fr;
+    }
+    
+    .testing-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .sub-tabs {
+        flex-direction: column;
+    }
+    
+    .sub-tab {
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 8px;
+    }
+    
+    .sub-tab.active {
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .server-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .server-toggle {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+function showMediaTab(tabId, element) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.sub-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabId).classList.add('active');
+    
+    // Add active class to clicked tab
+    element.classList.add('active');
+}
+
+// Service testing functions
+async function testService(serviceName) {
+    const statusElement = document.getElementById(serviceName + '-status');
+    statusElement.textContent = 'Testing...';
+    statusElement.className = 'test-status testing';
+    
+    try {
+        const response = await fetch(`/api/test-media-service/${serviceName}`, {
+            method: 'POST'
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            statusElement.textContent = 'Connected';
+            statusElement.className = 'test-status success';
+        } else {
+            statusElement.textContent = 'Failed';
+            statusElement.className = 'test-status error';
+        }
+        
+        updateTestResults(serviceName, result);
+    } catch (error) {
+        statusElement.textContent = 'Error';
+        statusElement.className = 'test-status error';
+        updateTestResults(serviceName, { success: false, error: error.message });
+    }
+}
+
+async function testAllServices() {
+    const services = ['plex', 'jellyfin', 'emby', 'kodi', 'radarr', 'sonarr'];
+    const statusElement = document.getElementById('all-status');
+    statusElement.textContent = 'Testing...';
+    statusElement.className = 'test-status testing';
+    
+    let allSuccess = true;
+    for (const service of services) {
+        await testService(service);
+        const serviceStatus = document.getElementById(service + '-status');
+        if (!serviceStatus.classList.contains('success')) {
+            allSuccess = false;
+        }
+    }
+    
+    statusElement.textContent = allSuccess ? 'All Connected' : 'Some Failed';
+    statusElement.className = allSuccess ? 'test-status success' : 'test-status error';
+}
+
+async function syncAllLibraries() {
+    const statusElement = document.getElementById('sync-status');
+    statusElement.textContent = 'Syncing...';
+    statusElement.className = 'test-status testing';
+    
+    try {
+        const response = await fetch('/api/sync-all-media-services', {
+            method: 'POST'
+        });
+        const result = await response.json();
+        
+        statusElement.textContent = result.success ? 'Synced' : 'Failed';
+        statusElement.className = result.success ? 'test-status success' : 'test-status error';
+        
+        updateTestResults('sync', result);
+    } catch (error) {
+        statusElement.textContent = 'Error';
+        statusElement.className = 'test-status error';
+        updateTestResults('sync', { success: false, error: error.message });
+    }
+}
+
+function updateTestResults(service, result) {
+    const resultsDiv = document.getElementById('test-results');
+    const contentDiv = document.getElementById('results-content');
+    
+    resultsDiv.style.display = 'block';
+    
+    const timestamp = new Date().toLocaleTimeString();
+    const status = result.success ? 'SUCCESS' : 'FAILED';
+    const message = result.message || result.error || 'No message';
+    
+    const resultText = `[${timestamp}] ${service.toUpperCase()}: ${status} - ${message}\n`;
+    contentDiv.textContent += resultText;
+    contentDiv.scrollTop = contentDiv.scrollHeight;
+}
+</script>
+
+<!-- Quality Profiles Management -->
+<script src="{{ url_for('static', filename='js/quality-profiles.js') }}"></script>
+
+{% endblock %}

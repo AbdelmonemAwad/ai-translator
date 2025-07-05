@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="{{ session.language or 'ar' }}" dir="{{ 'rtl' if (session.language or 'ar') == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if (session.language or 'ar') == 'ar' %}تسجيل الدخول - المترجم الذكي{% else %}Login - AI Translator{% endif %}</title>
+    <style>
+        :root {
+            --bg-dark: #1a1c23; 
+            --bg-primary: #282c34; 
+            --text-primary: #abb2bf;
+            --accent-primary: #61afef;
+            --accent-red: #e06c75;
+            --border-color: #3b4048;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--bg-primary);
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border-top: 4px solid var(--accent-primary);
+            text-align: center;
+        }
+        h1 {
+            color: white;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+        .subtitle {
+            color: var(--accent-primary);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: {{ 'right' if (session.language or 'ar') == 'ar' else 'left' }};
+        }
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .lang-btn {
+            padding: 8px 16px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .lang-btn:hover, .lang-btn.active {
+            background-color: var(--accent-primary);
+            color: white;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            text-align: {{ 'right' if (session.language or 'ar') == 'ar' else 'left' }};
+        }
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--accent-primary);
+            color: white;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .login-btn:hover {
+            background-color: #529bda;
+        }
+        .flash {
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 5px;
+            background-color: var(--accent-red);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Switcher -->
+    <div class="language-switcher">
+        <a href="?lang=ar" class="lang-btn {{ 'active' if (session.language or 'ar') == 'ar' else '' }}">العربية</a>
+        <a href="?lang=en" class="lang-btn {{ 'active' if (session.language or 'ar') == 'en' else '' }}">English</a>
+    </div>
+
+    <div class="login-container">
+        {% if (session.language or 'ar') == 'ar' %}
+            <h1>المترجم الذكي</h1>
+            <p class="subtitle">لوحة التحكم</p>
+        {% else %}
+            <h1>AI Translator</h1>
+            <p class="subtitle">Control Panel</p>
+        {% endif %}
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="post">
+            <div class="form-group">
+                {% if (session.language or 'ar') == 'ar' %}
+                    <input type="text" name="username" placeholder="اسم المستخدم" required>
+                {% else %}
+                    <input type="text" name="username" placeholder="Username" required>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {% if (session.language or 'ar') == 'ar' %}
+                    <input type="password" name="password" placeholder="كلمة المرور" required>
+                {% else %}
+                    <input type="password" name="password" placeholder="Password" required>
+                {% endif %}
+            </div>
+            {% if (session.language or 'ar') == 'ar' %}
+                <button type="submit" class="login-btn">تسجيل الدخول</button>
+            {% else %}
+                <button type="submit" class="login-btn">Login</button>
+            {% endif %}
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار السجلات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            margin: 20px;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .log-box {
+            background: #2d2d44;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 400px;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .btn {
+            background: #4a5568;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background: #5a6578;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>اختبار عرض السجلات</h1>
+        
+        <button class="btn" onclick="loadTestLogs()">تحميل السجلات</button>
+        <button class="btn" onclick="clearTestLogs()">مسح السجلات</button>
+        
+        <div id="test-log-container" class="log-box">
+            انقر على "تحميل السجلات" لعرض السجلات
+        </div>
+    </div>
+
+    <script>
+        async function loadTestLogs() {
+            const container = document.getElementById('test-log-container');
+            container.textContent = 'جاري التحميل...';
+            
+            try {
+                const response = await fetch('/api/get_log');
+                const data = await response.json();
+                
+                if (data.error) {
+                    container.textContent = 'خطأ: ' + data.error;
+                    return;
+                }
+                
+                if (!data.content) {
+                    container.textContent = 'لا توجد سجلات';
+                    return;
+                }
+                
+                // Display raw content first to see if it works
+                container.textContent = data.content;
+                
+            } catch (error) {
+                container.textContent = 'خطأ في الاتصال: ' + error.message;
+            }
+        }
+        
+        function clearTestLogs() {
+            document.getElementById('test-log-container').textContent = 'تم مسح العرض';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+{% block title %}{{ t('corrections') }} - {{ t('app_title') }}{% endblock %}
+{% block content %}
+<div class="panel">
+    <div class="panel-header"><h2>{{ t('correction_subtitle_names') }}</h2></div>
+    <p>{{ t('correction_description') }}</p>
+    <p>{{ t('correction_safety_note') }}</p>
+    <br>
+    <button id="start-correction-btn" class="action-btn">
+        <i data-feather="tool"></i>
+        {{ t('start_correction_process') }}
+    </button>
+</div>
+
+<div id="correction-status-panel" class="panel" style="display: none;">
+    <div class="panel-header"><h2>{{ t('process_status') }}</h2></div>
+    <div id="correction-status" style="text-align: center; margin-bottom: 1rem;">{{ t('waiting') }}</div>
+    <div class="progress-bar-container">
+        <div id="correction-progress-bar" style="width: 0%; height: 28px; background-color: var(--accent-purple); transition: width 0.5s ease;"></div>
+        <div class="progress-text" id="correction-progress-text">0%</div>
+    </div>
+    <div id="correction-current-file" style="text-align: center; min-height: 1.5em; color: var(--text-secondary); direction: ltr;">...</div>
+</div>
+
+<div id="correction-log-panel" class="panel" style="display: none;">
+    <div class="panel-header"><h2>{{ t('corrected_files') }} (<span id="fixed-count">0</span>)</h2></div>
+    <div id="log-container">
+        <pre id="correction-log"></pre>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const startBtn = document.getElementById('start-correction-btn');
+    const statusPanel = document.getElementById('correction-status-panel');
+    const statusDiv = document.getElementById('correction-status');
+    const progressBar = document.getElementById('correction-progress-bar');
+    const progressText = document.getElementById('correction-progress-text');
+    const currentFileDiv = document.getElementById('correction-current-file');
+    const logPanel = document.getElementById('correction-log-panel');
+    const logContainer = document.getElementById('correction-log');
+    const fixedCountSpan = document.getElementById('fixed-count');
+
+    startBtn.addEventListener('click', () => {
+        startBtn.disabled = true;
+        startBtn.textContent = 'جاري التصحيح...';
+        
+        statusPanel.style.display = 'block';
+        logPanel.style.display = 'block';
+        logContainer.innerHTML = '';
+        fixedCountSpan.textContent = '0';
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+        
+        const eventSource = new EventSource("{{ url_for('action_run_corrections') }}");
+
+        eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'start') {
+                statusDiv.textContent = `بدأت العملية... جاري فحص ${data.total} ملف.`;
+            } 
+            else if (data.type === 'progress') {
+                progressBar.style.width = `${data.progress}%`;
+                progressText.textContent = `${data.progress}%`;
+                currentFileDiv.textContent = data.current_file;
+            }
+            else if (data.type === 'log') {
+                const logEntry = document.createElement('div');
+                logEntry.textContent = data.message;
+                logContainer.appendChild(logEntry);
+                fixedCountSpan.textContent = data.fixed_count;
+            }
+            else if (data.type === 'finish') {
+                statusDiv.textContent = data.message;
+                progressBar.style.width = '100%';
+                progressText.textContent = '100%';
+                startBtn.disabled = false;
+                startBtn.textContent = 'بدء عملية التصحيح مرة أخرى';
+                eventSource.close();
+            }
+        };
+
+        eventSource.onerror = function() {
+            statusDiv.textContent = 'حدث خطأ في الاتصال. تم إيقاف العملية.';
+            startBtn.disabled = false;
+            startBtn.textContent = 'إعادة المحاولة';
+            eventSource.close();
+        };
+    });
+});
+</script>
+{% endblock %}

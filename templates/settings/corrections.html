@@ -1,0 +1,741 @@
+{% extends "settings/layout.html" %}
+
+{% block title %}{{ t('corrections_settings') }}{% endblock %}
+
+{% block settings_content %}
+<div class="settings-content">
+    <div class="settings-header">
+        <div class="header-icon">
+            <i data-feather="edit"></i>
+        </div>
+        <div class="header-content">
+            <h2>{{ t('corrections_settings') }}</h2>
+            <p>{{ t('corrections_settings_description') }}</p>
+        </div>
+    </div>
+
+    <!-- Sub-tabs for Corrections section -->
+    <div class="sub-tabs">
+        <a href="#filename" class="sub-tab active" onclick="showCorrectionsTab('filename', this)">
+            <i data-feather="file"></i>
+            {{ t('filename_corrections') }}
+        </a>
+        <a href="#subtitle" class="sub-tab" onclick="showCorrectionsTab('subtitle', this)">
+            <i data-feather="type"></i>
+            {{ t('subtitle_corrections') }}
+        </a>
+        <a href="#automatic" class="sub-tab" onclick="showCorrectionsTab('automatic', this)">
+            <i data-feather="zap"></i>
+            {{ t('automatic_corrections') }}
+        </a>
+    </div>
+
+    <form method="post" action="{{ url_for('settings_corrections') }}">
+        <!-- Filename Corrections Tab -->
+        <div id="filename" class="tab-content active">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="file"></i>
+                    {{ t('filename_corrections') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('filename_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('filename_description') }}
+                    </div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- Auto Correct Filenames -->
+                    <div class="setting-group">
+                        <label for="auto_correct_filenames" class="setting-label">
+                            <i data-feather="edit"></i>
+                            {{ t('auto_correct_filenames') }}
+                        </label>
+                        <select id="auto_correct_filenames" name="auto_correct_filenames" class="setting-select">
+                            <option value="true" {% if current_settings.get('auto_correct_filenames') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('auto_correct_filenames') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('auto_correct_filenames_description') }}</div>
+                    </div>
+
+                    <!-- Filename Pattern -->
+                    <div class="setting-group">
+                        <label for="filename_pattern" class="setting-label">
+                            <i data-feather="search"></i>
+                            {{ t('filename_pattern') }}
+                        </label>
+                        <input type="text" 
+                               id="filename_pattern" 
+                               name="filename_pattern" 
+                               value="{{ current_settings.get('filename_pattern', '*.hi.srt') }}" 
+                               class="setting-input"
+                               placeholder="*.hi.srt">
+                        <div class="setting-description">{{ t('filename_pattern_description') }}</div>
+                    </div>
+
+                    <!-- Replacement Pattern -->
+                    <div class="setting-group">
+                        <label for="replacement_pattern" class="setting-label">
+                            <i data-feather="arrow-right"></i>
+                            {{ t('replacement_pattern') }}
+                        </label>
+                        <input type="text" 
+                               id="replacement_pattern" 
+                               name="replacement_pattern" 
+                               value="{{ current_settings.get('replacement_pattern', '*.ar.srt') }}" 
+                               class="setting-input"
+                               placeholder="*.ar.srt">
+                        <div class="setting-description">{{ t('replacement_pattern_description') }}</div>
+                    </div>
+
+                    <!-- Backup Original Files -->
+                    <div class="setting-group">
+                        <label for="backup_original_files" class="setting-label">
+                            <i data-feather="archive"></i>
+                            {{ t('backup_original_files') }}
+                        </label>
+                        <select id="backup_original_files" name="backup_original_files" class="setting-select">
+                            <option value="true" {% if current_settings.get('backup_original_files') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('backup_original_files') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('backup_original_files_description') }}</div>
+                    </div>
+
+                    <!-- Case Sensitivity -->
+                    <div class="setting-group">
+                        <label for="case_sensitive_matching" class="setting-label">
+                            <i data-feather="type"></i>
+                            {{ t('case_sensitive_matching') }}
+                        </label>
+                        <select id="case_sensitive_matching" name="case_sensitive_matching" class="setting-select">
+                            <option value="true" {% if current_settings.get('case_sensitive_matching') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('case_sensitive_matching') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('case_sensitive_matching_description') }}</div>
+                    </div>
+
+                    <!-- Directory Recursion -->
+                    <div class="setting-group">
+                        <label for="recursive_directory_scan" class="setting-label">
+                            <i data-feather="folder"></i>
+                            {{ t('recursive_directory_scan') }}
+                        </label>
+                        <select id="recursive_directory_scan" name="recursive_directory_scan" class="setting-select">
+                            <option value="true" {% if current_settings.get('recursive_directory_scan') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('recursive_directory_scan') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('recursive_directory_scan_description') }}</div>
+                    </div>
+                </div>
+
+                <!-- Filename Correction Tools -->
+                <div class="setting-group">
+                    <h4 class="subsection-title">
+                        <i data-feather="tool"></i>
+                        {{ t('filename_tools') }}
+                    </h4>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-outline" onclick="previewCorrections()">
+                            <i data-feather="eye"></i>
+                            {{ t('preview_corrections') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="runCorrections()">
+                            <i data-feather="play"></i>
+                            {{ t('run_corrections') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="undoCorrections()">
+                            <i data-feather="rotate-ccw"></i>
+                            {{ t('undo_corrections') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subtitle Corrections Tab -->
+        <div id="subtitle" class="tab-content">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="type"></i>
+                    {{ t('subtitle_corrections') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('subtitle_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('subtitle_description') }}
+                    </div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- Text Encoding -->
+                    <div class="setting-group">
+                        <label for="subtitle_encoding" class="setting-label">
+                            <i data-feather="type"></i>
+                            {{ t('subtitle_encoding') }}
+                        </label>
+                        <select id="subtitle_encoding" name="subtitle_encoding" class="setting-select">
+                            <option value="utf-8" {% if current_settings.get('subtitle_encoding') == 'utf-8' %}selected{% endif %}>UTF-8</option>
+                            <option value="utf-16" {% if current_settings.get('subtitle_encoding') == 'utf-16' %}selected{% endif %}>UTF-16</option>
+                            <option value="windows-1256" {% if current_settings.get('subtitle_encoding') == 'windows-1256' %}selected{% endif %}>Windows-1256</option>
+                            <option value="iso-8859-6" {% if current_settings.get('subtitle_encoding') == 'iso-8859-6' %}selected{% endif %}>ISO-8859-6</option>
+                        </select>
+                        <div class="setting-description">{{ t('subtitle_encoding_description') }}</div>
+                    </div>
+
+                    <!-- Line Length Limit -->
+                    <div class="setting-group">
+                        <label for="max_line_length" class="setting-label">
+                            <i data-feather="minus"></i>
+                            {{ t('max_line_length') }}
+                        </label>
+                        <select id="max_line_length" name="max_line_length" class="setting-select">
+                            <option value="40" {% if current_settings.get('max_line_length') == '40' %}selected{% endif %}>40 {{ t('characters') }}</option>
+                            <option value="50" {% if current_settings.get('max_line_length') == '50' %}selected{% endif %}>50 {{ t('characters') }}</option>
+                            <option value="60" {% if current_settings.get('max_line_length') == '60' %}selected{% endif %}>60 {{ t('characters') }}</option>
+                            <option value="80" {% if current_settings.get('max_line_length') == '80' %}selected{% endif %}>80 {{ t('characters') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('max_line_length_description') }}</div>
+                    </div>
+
+                    <!-- Maximum Lines Per Subtitle -->
+                    <div class="setting-group">
+                        <label for="max_lines_per_subtitle" class="setting-label">
+                            <i data-feather="align-justify"></i>
+                            {{ t('max_lines_per_subtitle') }}
+                        </label>
+                        <select id="max_lines_per_subtitle" name="max_lines_per_subtitle" class="setting-select">
+                            <option value="1" {% if current_settings.get('max_lines_per_subtitle') == '1' %}selected{% endif %}>1 {{ t('line') }}</option>
+                            <option value="2" {% if current_settings.get('max_lines_per_subtitle') == '2' %}selected{% endif %}>2 {{ t('lines') }}</option>
+                            <option value="3" {% if current_settings.get('max_lines_per_subtitle') == '3' %}selected{% endif %}>3 {{ t('lines') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('max_lines_per_subtitle_description') }}</div>
+                    </div>
+
+                    <!-- Fix Arabic Text Direction -->
+                    <div class="setting-group">
+                        <label for="fix_arabic_direction" class="setting-label">
+                            <i data-feather="arrow-left"></i>
+                            {{ t('fix_arabic_direction') }}
+                        </label>
+                        <select id="fix_arabic_direction" name="fix_arabic_direction" class="setting-select">
+                            <option value="true" {% if current_settings.get('fix_arabic_direction') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('fix_arabic_direction') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('fix_arabic_direction_description') }}</div>
+                    </div>
+
+                    <!-- Remove HTML Tags -->
+                    <div class="setting-group">
+                        <label for="remove_html_tags" class="setting-label">
+                            <i data-feather="code"></i>
+                            {{ t('remove_html_tags') }}
+                        </label>
+                        <select id="remove_html_tags" name="remove_html_tags" class="setting-select">
+                            <option value="true" {% if current_settings.get('remove_html_tags') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('remove_html_tags') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('remove_html_tags_description') }}</div>
+                    </div>
+
+                    <!-- Normalize Punctuation -->
+                    <div class="setting-group">
+                        <label for="normalize_punctuation" class="setting-label">
+                            <i data-feather="more-horizontal"></i>
+                            {{ t('normalize_punctuation') }}
+                        </label>
+                        <select id="normalize_punctuation" name="normalize_punctuation" class="setting-select">
+                            <option value="true" {% if current_settings.get('normalize_punctuation') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('normalize_punctuation') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('normalize_punctuation_description') }}</div>
+                    </div>
+                </div>
+
+                <!-- Subtitle Format Options -->
+                <div class="setting-group">
+                    <h4 class="subsection-title">
+                        <i data-feather="settings"></i>
+                        {{ t('subtitle_format_options') }}
+                    </h4>
+                    <div class="settings-grid two-columns">
+                        <div class="setting-group">
+                            <label for="time_format" class="setting-label">
+                                <i data-feather="clock"></i>
+                                {{ t('time_format') }}
+                            </label>
+                            <select id="time_format" name="time_format" class="setting-select">
+                                <option value="srt" {% if current_settings.get('time_format') == 'srt' %}selected{% endif %}>SRT (00:00:00,000)</option>
+                                <option value="ass" {% if current_settings.get('time_format') == 'ass' %}selected{% endif %}>ASS (0:00:00.00)</option>
+                                <option value="vtt" {% if current_settings.get('time_format') == 'vtt' %}selected{% endif %}>WebVTT (00:00:00.000)</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label for="frame_rate" class="setting-label">
+                                <i data-feather="film"></i>
+                                {{ t('frame_rate') }}
+                            </label>
+                            <select id="frame_rate" name="frame_rate" class="setting-select">
+                                <option value="23.976" {% if current_settings.get('frame_rate') == '23.976' %}selected{% endif %}>23.976 fps</option>
+                                <option value="24" {% if current_settings.get('frame_rate') == '24' %}selected{% endif %}>24 fps</option>
+                                <option value="25" {% if current_settings.get('frame_rate') == '25' %}selected{% endif %}>25 fps</option>
+                                <option value="29.97" {% if current_settings.get('frame_rate') == '29.97' %}selected{% endif %}>29.97 fps</option>
+                                <option value="30" {% if current_settings.get('frame_rate') == '30' %}selected{% endif %}>30 fps</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subtitle Validation Tools -->
+                <div class="setting-group">
+                    <h4 class="subsection-title">
+                        <i data-feather="check-circle"></i>
+                        {{ t('subtitle_validation') }}
+                    </h4>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-outline" onclick="validateSubtitles()">
+                            <i data-feather="check-circle"></i>
+                            {{ t('validate_subtitles') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="fixSubtitleTiming()">
+                            <i data-feather="clock"></i>
+                            {{ t('fix_subtitle_timing') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="convertSubtitleFormat()">
+                            <i data-feather="repeat"></i>
+                            {{ t('convert_format') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Automatic Corrections Tab -->
+        <div id="automatic" class="tab-content">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="zap"></i>
+                    {{ t('automatic_corrections') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('automatic_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('automatic_description') }}
+                    </div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- Auto Run After Translation -->
+                    <div class="setting-group">
+                        <label for="auto_run_corrections" class="setting-label">
+                            <i data-feather="play"></i>
+                            {{ t('auto_run_corrections') }}
+                        </label>
+                        <select id="auto_run_corrections" name="auto_run_corrections" class="setting-select">
+                            <option value="true" {% if current_settings.get('auto_run_corrections') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('auto_run_corrections') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('auto_run_corrections_description') }}</div>
+                    </div>
+
+                    <!-- Correction Delay -->
+                    <div class="setting-group">
+                        <label for="correction_delay" class="setting-label">
+                            <i data-feather="clock"></i>
+                            {{ t('correction_delay') }}
+                        </label>
+                        <select id="correction_delay" name="correction_delay" class="setting-select">
+                            <option value="0" {% if current_settings.get('correction_delay') == '0' %}selected{% endif %}>{{ t('immediate') }}</option>
+                            <option value="5" {% if current_settings.get('correction_delay') == '5' %}selected{% endif %}>5 {{ t('seconds') }}</option>
+                            <option value="10" {% if current_settings.get('correction_delay') == '10' %}selected{% endif %}>10 {{ t('seconds') }}</option>
+                            <option value="30" {% if current_settings.get('correction_delay') == '30' %}selected{% endif %}>30 {{ t('seconds') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('correction_delay_description') }}</div>
+                    </div>
+
+                    <!-- Batch Processing -->
+                    <div class="setting-group">
+                        <label for="batch_processing" class="setting-label">
+                            <i data-feather="layers"></i>
+                            {{ t('batch_processing') }}
+                        </label>
+                        <select id="batch_processing" name="batch_processing" class="setting-select">
+                            <option value="true" {% if current_settings.get('batch_processing') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('batch_processing') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('batch_processing_description') }}</div>
+                    </div>
+
+                    <!-- Notification on Completion -->
+                    <div class="setting-group">
+                        <label for="notify_on_completion" class="setting-label">
+                            <i data-feather="bell"></i>
+                            {{ t('notify_on_completion') }}
+                        </label>
+                        <select id="notify_on_completion" name="notify_on_completion" class="setting-select">
+                            <option value="true" {% if current_settings.get('notify_on_completion') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('notify_on_completion') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('notify_on_completion_description') }}</div>
+                    </div>
+
+                    <!-- Error Handling -->
+                    <div class="setting-group">
+                        <label for="error_handling" class="setting-label">
+                            <i data-feather="alert-triangle"></i>
+                            {{ t('error_handling') }}
+                        </label>
+                        <select id="error_handling" name="error_handling" class="setting-select">
+                            <option value="skip" {% if current_settings.get('error_handling') == 'skip' %}selected{% endif %}>{{ t('skip_errors') }}</option>
+                            <option value="stop" {% if current_settings.get('error_handling') == 'stop' %}selected{% endif %}>{{ t('stop_on_error') }}</option>
+                            <option value="retry" {% if current_settings.get('error_handling') == 'retry' %}selected{% endif %}>{{ t('retry_errors') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('error_handling_description') }}</div>
+                    </div>
+
+                    <!-- Log Corrections -->
+                    <div class="setting-group">
+                        <label for="log_corrections" class="setting-label">
+                            <i data-feather="file-text"></i>
+                            {{ t('log_corrections') }}
+                        </label>
+                        <select id="log_corrections" name="log_corrections" class="setting-select">
+                            <option value="true" {% if current_settings.get('log_corrections') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            <option value="false" {% if current_settings.get('log_corrections') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('log_corrections_description') }}</div>
+                    </div>
+                </div>
+
+                <!-- Scheduled Corrections -->
+                <div class="setting-group">
+                    <h4 class="subsection-title">
+                        <i data-feather="calendar"></i>
+                        {{ t('scheduled_corrections') }}
+                    </h4>
+                    <div class="settings-grid two-columns">
+                        <div class="setting-group">
+                            <label for="schedule_enabled" class="setting-label">
+                                <i data-feather="clock"></i>
+                                {{ t('enable_scheduling') }}
+                            </label>
+                            <select id="schedule_enabled" name="schedule_enabled" class="setting-select">
+                                <option value="true" {% if current_settings.get('schedule_enabled') == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                                <option value="false" {% if current_settings.get('schedule_enabled') != 'true' %}selected{% endif %}>{{ t('disabled') }}</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label for="schedule_frequency" class="setting-label">
+                                <i data-feather="repeat"></i>
+                                {{ t('schedule_frequency') }}
+                            </label>
+                            <select id="schedule_frequency" name="schedule_frequency" class="setting-select">
+                                <option value="hourly" {% if current_settings.get('schedule_frequency') == 'hourly' %}selected{% endif %}>{{ t('hourly') }}</option>
+                                <option value="daily" {% if current_settings.get('schedule_frequency') == 'daily' %}selected{% endif %}>{{ t('daily') }}</option>
+                                <option value="weekly" {% if current_settings.get('schedule_frequency') == 'weekly' %}selected{% endif %}>{{ t('weekly') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Automatic Correction Tools -->
+                <div class="setting-group">
+                    <h4 class="subsection-title">
+                        <i data-feather="settings"></i>
+                        {{ t('automatic_tools') }}
+                    </h4>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-outline" onclick="setupAutoCorrections()">
+                            <i data-feather="settings"></i>
+                            {{ t('setup_auto_corrections') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="testAutoCorrections()">
+                            <i data-feather="play"></i>
+                            {{ t('test_auto_corrections') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="viewCorrectionSchedule()">
+                            <i data-feather="calendar"></i>
+                            {{ t('view_schedule') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i data-feather="save"></i>
+                {{ t('save_settings') }}
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+.sub-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0;
+}
+
+.sub-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-radius: 8px 8px 0 0;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    border-bottom: none;
+    position: relative;
+    bottom: -1px;
+}
+
+.sub-tab:hover {
+    color: var(--accent-primary);
+    background: var(--bg-secondary);
+}
+
+.sub-tab.active {
+    color: var(--accent-primary);
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+    border-bottom: 1px solid var(--bg-primary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.settings-grid.two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.btn-outline:hover {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.subsection-title {
+    margin: 24px 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@media (max-width: 768px) {
+    .settings-grid.two-columns {
+        grid-template-columns: 1fr;
+    }
+    
+    .sub-tabs {
+        flex-direction: column;
+    }
+    
+    .sub-tab {
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 8px;
+    }
+    
+    .sub-tab.active {
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+function showCorrectionsTab(tabId, element) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.sub-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabId).classList.add('active');
+    
+    // Add active class to clicked tab
+    element.classList.add('active');
+}
+
+// Filename correction functions
+async function previewCorrections() {
+    try {
+        const response = await fetch('/api/preview-corrections');
+        const result = await response.json();
+        
+        if (result.files && result.files.length > 0) {
+            let message = '{{ t("files_to_be_corrected") }}:\n\n';
+            result.files.forEach(file => {
+                message += `${file.original} → ${file.corrected}\n`;
+            });
+            alert(message);
+        } else {
+            alert('{{ t("no_files_need_correction") }}');
+        }
+    } catch (error) {
+        alert('Preview failed: ' + error.message);
+    }
+}
+
+async function runCorrections() {
+    if (confirm('{{ t("run_corrections_confirm") }}')) {
+        try {
+            const response = await fetch('/api/run-corrections', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || '{{ t("corrections_completed") }}');
+        } catch (error) {
+            alert('Corrections failed: ' + error.message);
+        }
+    }
+}
+
+async function undoCorrections() {
+    if (confirm('{{ t("undo_corrections_confirm") }}')) {
+        try {
+            const response = await fetch('/api/undo-corrections', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || '{{ t("corrections_undone") }}');
+        } catch (error) {
+            alert('Undo failed: ' + error.message);
+        }
+    }
+}
+
+// Subtitle validation functions
+async function validateSubtitles() {
+    try {
+        const response = await fetch('/api/validate-subtitles');
+        const result = await response.json();
+        
+        if (result.errors && result.errors.length > 0) {
+            let message = '{{ t("subtitle_validation_errors") }}:\n\n';
+            result.errors.forEach(error => {
+                message += `${error.file}: ${error.error}\n`;
+            });
+            alert(message);
+        } else {
+            alert('{{ t("all_subtitles_valid") }}');
+        }
+    } catch (error) {
+        alert('Validation failed: ' + error.message);
+    }
+}
+
+async function fixSubtitleTiming() {
+    if (confirm('{{ t("fix_timing_confirm") }}')) {
+        try {
+            const response = await fetch('/api/fix-subtitle-timing', { method: 'POST' });
+            const result = await response.json();
+            alert(result.message || '{{ t("timing_fixed") }}');
+        } catch (error) {
+            alert('Timing fix failed: ' + error.message);
+        }
+    }
+}
+
+async function convertSubtitleFormat() {
+    const format = prompt('{{ t("enter_target_format") }} (srt, ass, vtt):');
+    if (format && ['srt', 'ass', 'vtt'].includes(format.toLowerCase())) {
+        try {
+            const response = await fetch('/api/convert-subtitle-format', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ format: format.toLowerCase() })
+            });
+            const result = await response.json();
+            alert(result.message || '{{ t("format_converted") }}');
+        } catch (error) {
+            alert('Conversion failed: ' + error.message);
+        }
+    }
+}
+
+// Automatic correction functions
+async function setupAutoCorrections() {
+    try {
+        const response = await fetch('/api/setup-auto-corrections', { method: 'POST' });
+        const result = await response.json();
+        alert(result.message || '{{ t("auto_corrections_setup") }}');
+    } catch (error) {
+        alert('Setup failed: ' + error.message);
+    }
+}
+
+async function testAutoCorrections() {
+    try {
+        const response = await fetch('/api/test-auto-corrections', { method: 'POST' });
+        const result = await response.json();
+        alert(result.message || '{{ t("auto_corrections_tested") }}');
+    } catch (error) {
+        alert('Test failed: ' + error.message);
+    }
+}
+
+async function viewCorrectionSchedule() {
+    try {
+        const response = await fetch('/api/correction-schedule');
+        const result = await response.json();
+        
+        if (result.schedule && result.schedule.length > 0) {
+            let message = '{{ t("correction_schedule") }}:\n\n';
+            result.schedule.forEach(item => {
+                message += `${item.time}: ${item.action}\n`;
+            });
+            alert(message);
+        } else {
+            alert('{{ t("no_scheduled_corrections") }}');
+        }
+    } catch (error) {
+        alert('Failed to get schedule: ' + error.message);
+    }
+}
+</script>
+{% endblock %}

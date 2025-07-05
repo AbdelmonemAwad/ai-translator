@@ -1,0 +1,2290 @@
+{% extends "layout.html" %}
+{% block title %}{{ t('settings') }} - {{ t('app_name') }}{% endblock %}
+{% block content %}
+<div class="panel">
+    <div class="panel-header">
+        <h2>{{ t('application_settings') }}</h2>
+        <div class="settings-actions">
+            <button class="action-btn" onclick="saveAllSettings()" style="background-color: var(--accent-green);">
+                <i data-feather="save"></i>
+                {{ t('save_all') }}
+            </button>
+        </div>
+    </div>
+    <div class="settings-navigation">
+        <div class="navigation-header">
+            <h3 style="color: var(--text-primary); margin: 0;">{{ t('settings_navigation') }}</h3>
+        </div>
+        
+        <div class="category-dropdown-container">
+            <div class="dropdown-group">
+                <label for="category-select" class="dropdown-label">{{ t('settings_category') }}:</label>
+                <select id="category-select" class="category-select" onchange="switchCategory()">
+                    <option value="general">🔧 {{ t('general_category') }}</option>
+                    <option value="ai">🤖 {{ t('ai_category') }}</option>
+                    <option value="media">📺 {{ t('media_category') }}</option>
+                    <option value="system">⚙️ {{ t('system_category') }}</option>
+                    <option value="development">🛠️ {{ t('development_category') }}</option>
+                </select>
+            </div>
+            
+            <div class="dropdown-group">
+                <label for="subcategory-select" class="dropdown-label">{{ t('settings_subcategory') }}:</label>
+                <select id="subcategory-select" class="subcategory-select" onchange="switchTab()">
+                    <!-- Options populated by JavaScript -->
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" action="{{ url_for('settings_page') }}">
+        {% for section, items in settings_by_section.items() %}
+        <div class="tab-content {% if not loop.first %}hidden{% endif %}" id="tab-{{ section }}">
+            <div class="form-section">
+                <!-- Service Integration Help -->
+                {% if section == 'PLEX' %}
+                    <div class="help-section" style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent-primary);">
+                        <h4 style="display: flex; align-items: center; gap: 8px; color: var(--accent-primary); margin-bottom: 15px;">
+                            <i data-feather="info"></i> {{ t('plex_setup_guide') }}
+                        </h4>
+                        <div>
+                            <ol style="margin: 10px 0; padding-right: 20px;">
+                                <li>{{ t('plex_step_1') }}</li>
+                                <li>{{ t('plex_step_2') }}</li>
+                                <li>{{ t('plex_step_3') }}</li>
+                                <li>{{ t('plex_step_4') }}</li>
+                            </ol>
+                        </div>
+                        <p style="margin-top: 15px; color: var(--text-secondary);">
+                            <strong>{{ t('example') }}:</strong> Token: X-Plex-Token=xxxxxxxxxxxxxxxxxxxx
+                        </p>
+                    </div>
+                {% elif section == 'JELLYFIN' %}
+                    <div class="help-section" style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent-primary);">
+                        <h4 style="display: flex; align-items: center; gap: 8px; color: var(--accent-primary); margin-bottom: 15px;">
+                            <i data-feather="info"></i> {{ t('jellyfin_setup_guide') }}
+                        </h4>
+                        <div>
+                            <ol style="margin: 10px 0; padding-right: 20px;">
+                                <li>{{ t('jellyfin_step_1') }}</li>
+                                <li>{{ t('jellyfin_step_2') }}</li>
+                                <li>{{ t('jellyfin_step_3') }}</li>
+                                <li>{{ t('jellyfin_step_4') }}</li>
+                            </ol>
+                        </div>
+                        <p style="margin-top: 15px; color: var(--text-secondary);">
+                            <strong>{{ t('example') }}:</strong> API Key: 1234567890abcdef1234567890abcdef
+                        </p>
+                    </div>
+                {% elif section == 'EMBY' %}
+                    <div class="help-section" style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent-primary);">
+                        <h4 style="display: flex; align-items: center; gap: 8px; color: var(--accent-primary); margin-bottom: 15px;">
+                            <i data-feather="info"></i> {{ t('emby_setup_guide') }}
+                        </h4>
+                        <div>
+                            <ol style="margin: 10px 0; padding-right: 20px;">
+                                <li>{{ t('emby_step_1') }}</li>
+                                <li>{{ t('emby_step_2') }}</li>
+                                <li>{{ t('emby_step_3') }}</li>
+                                <li>{{ t('emby_step_4') }}</li>
+                            </ol>
+                        </div>
+                        <p style="margin-top: 15px; color: var(--text-secondary);">
+                            <strong>{{ t('example') }}:</strong> API Key: abcdef1234567890abcdef1234567890
+                        </p>
+                    </div>
+                {% elif section == 'KODI' %}
+                    <div class="help-section" style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent-primary);">
+                        <h4 style="display: flex; align-items: center; gap: 8px; color: var(--accent-primary); margin-bottom: 15px;">
+                            <i data-feather="info"></i> {{ t('kodi_setup_guide') }}
+                        </h4>
+                        <div>
+                            <ol style="margin: 10px 0; padding-right: 20px;">
+                                <li>{{ t('kodi_step_1') }}</li>
+                                <li>{{ t('kodi_step_2') }}</li>
+                                <li>{{ t('kodi_step_3') }}</li>
+                                <li>{{ t('kodi_step_4') }}</li>
+                            </ol>
+                        </div>
+                        <p style="margin-top: 15px; color: var(--text-secondary);">
+                            <strong>{{ t('example') }}:</strong> URL: http://192.168.1.100:8080/jsonrpc
+                        </p>
+                    </div>
+                {% elif section == 'RADARR' %}
+                    <div class="help-section" style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent-success);">
+                        <h4 style="display: flex; align-items: center; gap: 8px; color: var(--accent-success); margin-bottom: 15px;">
+                            <i data-feather="film"></i> {{ t('radarr_setup_guide') }}
+                        </h4>
+                        <div>
+                            <ol style="margin: 10px 0; padding-right: 20px;">
+                                <li>{{ t('radarr_step_1') }}</li>
+                                <li>{{ t('radarr_step_2') }}</li>
+                                <li>{{ t('radarr_step_3') }}</li>
+                                <li>{{ t('radarr_step_4') }}</li>
+                                <li>{{ t('radarr_step_5') }}</li>
+                                <li>{{ t('radarr_step_6') }}</li>
+                            </ol>
+                            <p style="color: var(--text-warning); font-size: 0.9em;">
+                                📍 {{ t('radarr_description') }}
+                            </p>
+                        </div>
+                        <p style="margin-top: 15px; color: var(--text-secondary);">
+                            <strong>{{ t('example') }}:</strong> http://localhost:7878 | API Key: 1234567890abcdef1234567890abcdef
+                        </p>
+                    </div>
+                {% elif section == 'SONARR' %}
+                    <div class="help-section" style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent-info);">
+                        <h4 style="display: flex; align-items: center; gap: 8px; color: var(--accent-info); margin-bottom: 15px;">
+                            <i data-feather="tv"></i> {{ t('sonarr_setup_guide') }}
+                        </h4>
+                        <div>
+                            <ol style="margin: 10px 0; padding-right: 20px;">
+                                <li>{{ t('sonarr_step_1') }}</li>
+                                <li>{{ t('sonarr_step_2') }}</li>
+                                <li>{{ t('sonarr_step_3') }}</li>
+                                <li>{{ t('sonarr_step_4') }}</li>
+                                <li>{{ t('sonarr_step_5') }}</li>
+                                <li>{{ t('sonarr_step_6') }}</li>
+                            </ol>
+                            <p style="color: var(--text-warning); font-size: 0.9em;">
+                                📺 {{ t('sonarr_description') }}
+                            </p>
+                        </div>
+                        <p style="margin-top: 15px; color: var(--text-secondary);">
+                            <strong>{{ t('example') }}:</strong> http://localhost:8989 | API Key: abcdef1234567890abcdef1234567890
+                        </p>
+                    </div>
+                {% elif section == 'API' %}
+                    <div class="help-section" style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent-warning);">
+                        <h4 style="display: flex; align-items: center; gap: 8px; color: var(--accent-warning); margin-bottom: 15px;">
+                            <i data-feather="cpu"></i> {{ t('ollama_setup_guide') }}
+                        </h4>
+                        <div>
+                            <ol style="margin: 10px 0; padding-right: 20px;">
+                                <li>{{ t('ollama_step_1') }}</li>
+                                <li>{{ t('ollama_step_2') }}</li>
+                                <li>{{ t('ollama_step_3') }}</li>
+                                <li>{{ t('ollama_step_4') }}</li>
+                            </ol>
+                            <p style="color: var(--text-warning); font-size: 0.9em;">
+                                🤖 {{ t('ollama_description') }}
+                            </p>
+                        </div>
+                        <p style="margin-top: 15px; color: var(--text-secondary);">
+                            <strong>{{ t('example') }}:</strong> http://localhost:11434 | Command: ollama pull llama3
+                        </p>
+                    </div>
+                {% elif section == 'SERVER' %}
+                    <div class="help-section" style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent-blue);">
+                        <h4 style="display: flex; align-items: center; gap: 8px; color: var(--accent-blue); margin-bottom: 15px;">
+                            <i data-feather="server"></i> 
+                            {% if get_user_language() == 'ar' %}
+                                دليل تكوين الخادم
+                            {% else %}
+                                Server Configuration Guide
+                            {% endif %}
+                        </h4>
+                        <div>
+                            <p style="color: var(--text-primary); font-size: 0.9em; margin-bottom: 15px;">
+                                {% if get_user_language() == 'ar' %}
+                                    🌐 تحكم في إعدادات شبكة الخادم وعنوان IP ومنفذ الاتصال. هذه الإعدادات تحدد كيفية وصول المستخدمين للتطبيق.
+                                {% else %}
+                                    🌐 Control server network settings, IP address and connection port. These settings determine how users access the application.
+                                {% endif %}
+                            </p>
+                            
+                            <!-- Current Server Status -->
+                            <div id="current-server-info" style="background: var(--accent-info-bg, rgba(59, 130, 246, 0.1)); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--accent-info);">
+                                <p style="color: var(--accent-info); margin: 0; font-weight: bold;">
+                                    {% if get_user_language() == 'ar' %}
+                                        📍 الخادم الحالي يعمل على: <span id="current-host-display">جاري التحميل...</span>:<span id="current-port-display">5000</span>
+                                    {% else %}
+                                        📍 Current server running on: <span id="current-host-display">Loading...</span>:<span id="current-port-display">5000</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            
+                            <div style="background: var(--accent-warning-bg, rgba(245, 158, 11, 0.1)); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--accent-warning);">
+                                <p style="color: var(--accent-warning); margin: 0; font-weight: bold;">
+                                    {% if get_user_language() == 'ar' %}
+                                        ⚠️ ملاحظة مهمة: في بيئة Replit، تغيير هذه الإعدادات سيحفظ القيم الجديدة ولكن التطبيق الحالي سيبقى على العنوان الموضح أعلاه.
+                                    {% else %}
+                                        ⚠️ Important Note: In Replit environment, changing these settings will save new values but the current application will remain on the address shown above.
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <h5 style="color: var(--accent-info); margin-bottom: 10px;">
+                                {% if get_user_language() == 'ar' %}
+                                    الإعدادات المتاحة:
+                                {% else %}
+                                    Available Settings:
+                                {% endif %}
+                            </h5>
+                            <ul style="margin: 10px 0; padding-right: 20px;">
+                                {% if get_user_language() == 'ar' %}
+                                    <li><strong>عنوان IP للخادم:</strong> يحدد من يمكنه الوصول للتطبيق. القيمة الحالية تظهر أعلاه وستكون القيمة الافتراضية في الإعدادات</li>
+                                    <li><strong>منفذ الخادم:</strong> رقم المنفذ الذي يعمل عليه التطبيق. المنفذ الحالي يظهر أعلاه</li>
+                                    <li><strong>خيارات الوصول:</strong> 
+                                        <ul style="margin-top: 5px;">
+                                            <li>للوصول من جميع الأجهزة: اكتب العنوان الحالي المعروض أعلاه</li>
+                                            <li>للوصول المحلي فقط: استخدم 127.0.0.1</li>
+                                            <li>لشبكة محددة: أدخل عنوان IP الشبكة المطلوبة</li>
+                                        </ul>
+                                    </li>
+                                {% else %}
+                                    <li><strong>Server IP Address:</strong> Determines who can access the application. Current value shown above will be the default in settings</li>
+                                    <li><strong>Server Port:</strong> Port number on which the application runs. Current port shown above</li>
+                                    <li><strong>Access Options:</strong> 
+                                        <ul style="margin-top: 5px;">
+                                            <li>For access from all devices: Use the current address shown above</li>
+                                            <li>For local access only: Use 127.0.0.1</li>
+                                            <li>For specific network: Enter the desired network IP address</li>
+                                        </ul>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                            <h5 style="color: var(--accent-info); margin: 15px 0 10px;">
+                                {% if get_user_language() == 'ar' %}
+                                    إرشادات الأمان:
+                                {% else %}
+                                    Security Guidelines:
+                                {% endif %}
+                            </h5>
+                            <ol style="margin: 10px 0; padding-right: 20px;">
+                                {% if get_user_language() == 'ar' %}
+                                    <li>للوصول العام: استخدم العنوان الحالي المعروض أعلاه لإتاحة الوصول من جميع الأجهزة</li>
+                                    <li>للأمان المحلي: استخدم 127.0.0.1 للوصول من الجهاز نفسه فقط</li>
+                                    <li>تجنب المنافذ المحجوزة (من 1 إلى 1023) واستخدم المنافذ العليا مثل 5000، 8000، 3000</li>
+                                    <li>تأكد من أن المنفذ المختار متاح وغير مستخدم بواسطة تطبيق آخر</li>
+                                {% else %}
+                                    <li>For public access: Use the current address shown above to allow access from all devices</li>
+                                    <li>For local security: Use 127.0.0.1 for access from the same device only</li>
+                                    <li>Avoid reserved ports (1-1023) and use higher ports like 5000, 8000, 3000</li>
+                                    <li>Ensure the chosen port is available and not used by another application</li>
+                                {% endif %}
+                            </ol>
+                        </div>
+                    </div>
+                {% elif section == 'REMOTE_STORAGE' %}
+                    <div class="help-section" style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent-warning);">
+                        <h4 style="display: flex; align-items: center; gap: 8px; color: var(--accent-warning); margin-bottom: 15px;">
+                            <i data-feather="server"></i> {{ t('remote_storage_setup_guide') }}
+                        </h4>
+                        <div>
+                            <p style="color: var(--text-warning); font-size: 0.9em; margin-bottom: 15px;">
+                                🔗 {{ t('remote_storage_description') }}
+                            </p>
+                            <h5 style="color: var(--accent-info); margin-bottom: 10px;">{{ t('supported_protocols') }}:</h5>
+                            <ul style="margin: 10px 0; padding-right: 20px;">
+                                <li><strong>SFTP (SSH):</strong> {{ t('sftp_description') }}</li>
+                                <li><strong>FTP:</strong> {{ t('ftp_description') }}</li>
+                                <li><strong>SMB/CIFS:</strong> {{ t('smb_description') }}</li>
+                                <li><strong>NFS:</strong> {{ t('nfs_description') }}</li>
+                            </ul>
+                            <h5 style="color: var(--accent-info); margin: 15px 0 10px;">{{ t('setup_steps') }}:</h5>
+                            <ol style="margin: 10px 0; padding-right: 20px;">
+                                <li>{{ t('remote_step_1') }}</li>
+                                <li>{{ t('remote_step_2') }}</li>
+                                <li>{{ t('remote_step_3') }}</li>
+                                <li>{{ t('remote_step_4') }}</li>
+                                <li>{{ t('remote_step_5') }}</li>
+                                <li>{{ t('remote_step_6') }}</li>
+                                <li>{{ t('remote_step_7') }}</li>
+                            </ol>
+                        </div>
+                        <div style="margin-top: 20px; padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
+                            <div id="remote-storage-controls" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                <button type="button" id="test-remote-connection" class="btn btn-warning">
+                                    <i data-feather="wifi"></i> {{ t('test_connection') }}
+                                </button>
+                                <button type="button" id="view-mount-status" class="btn btn-info">
+                                    <i data-feather="monitor"></i> {{ t('mount_status') }}
+                                </button>
+                                <button type="button" id="unmount-remote" class="btn btn-danger">
+                                    <i data-feather="x-circle"></i> {{ t('unmount') }}
+                                </button>
+                            </div>
+                            <div id="remote-storage-status" style="min-height: 40px; padding: 10px; background: var(--bg-primary); border-radius: 4px; font-family: monospace; font-size: 0.9em;">
+                                {{ t('ready_to_test') }}
+                            </div>
+                        </div>
+                        <p style="margin-top: 15px; color: var(--text-secondary);">
+                            <strong>{{ t('remote_storage_examples') }}:</strong><br>
+                            SFTP: user@192.168.1.100:/volume1/media<br>
+                            SMB: \\192.168.1.100\shared\movies<br>
+                            NFS: 192.168.1.100:/export/media<br><br>
+                            <strong>{{ t('local_mount_examples') }}:</strong><br>
+                            Movies: /mnt/remote/movies<br>
+                            Series: /mnt/remote/series<br>
+                            Complete: /mnt/remote/movies/complete
+                        </p>
+                    </div>
+                {% elif section == 'PATHS' %}
+                    <div class="help-section" style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent-info);">
+                        <h4 style="display: flex; align-items: center; gap: 8px; color: var(--accent-info); margin-bottom: 15px;">
+                            <i data-feather="folder"></i> {{ t('file_paths_setup_guide') }}
+                        </h4>
+                        <div>
+                            <p style="color: var(--text-warning); font-size: 0.9em; margin-bottom: 15px;">
+                                📁 {{ t('paths_description') }}
+                            </p>
+                            <h5 style="color: var(--accent-info); margin-bottom: 10px;">{{ t('path_types') }}:</h5>
+                            <ul style="margin: 10px 0; padding-right: 20px;">
+                                <li><strong>{{ t('remote_paths') }}:</strong> {{ t('remote_paths_desc') }}</li>
+                                <li><strong>{{ t('local_mounts') }}:</strong> {{ t('local_mounts_desc') }}</li>
+                                <li><strong>{{ t('path_mapping') }}:</strong> {{ t('path_mapping_desc') }}</li>
+                            </ul>
+                            <h5 style="color: var(--accent-info); margin: 15px 0 10px;">{{ t('setup_steps') }}:</h5>
+                            <ol style="margin: 10px 0; padding-right: 20px;">
+                                <li>{{ t('paths_step_1') }}</li>
+                                <li>{{ t('paths_step_2') }}</li>
+                                <li>{{ t('paths_step_3') }}</li>
+                                <li>{{ t('paths_step_4') }}</li>
+                            </ol>
+                        </div>
+                        <div style="margin-top: 20px; padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
+                            <strong>{{ t('path_mapping_example') }}:</strong>
+                            <div style="margin-top: 10px; font-family: monospace; font-size: 0.9em;">
+                                <div style="color: var(--accent-info); margin-bottom: 5px;">{{ t('remote_storage') }}:</div>
+                                <div style="margin-bottom: 10px; padding: 5px; background: var(--bg-primary); border-radius: 4px;">
+                                    • {{ t('movies') }}: /volume1/Download/complete<br>
+                                    • {{ t('series') }}: /volume1/tv show download
+                                </div>
+                                <div style="color: var(--accent-success); margin-bottom: 5px;">{{ t('local_mount') }}:</div>
+                                <div style="padding: 5px; background: var(--bg-primary); border-radius: 4px;">
+                                    • {{ t('movies') }}: /mnt/remote/movies/complete<br>
+                                    • {{ t('series') }}: /mnt/remote/tv
+                                </div>
+                            </div>
+                        </div>
+                        <p style="margin-top: 15px; color: var(--text-secondary);">
+                            <strong>{{ t('important_note') }}:</strong> {{ t('paths_note') }}
+                        </p>
+                    </div>
+                {% endif %}
+
+                
+                {% if section == 'REMOTE_STORAGE' %}
+                    {% set field_groups = {
+                        'connection': ['remote_storage_enabled', 'remote_storage_protocol', 'remote_storage_host', 'remote_storage_port', 'remote_storage_timeout'],
+                        'authentication': ['remote_storage_username', 'remote_storage_password'],
+                        'paths': ['remote_storage_path'],
+                        'mount_points': ['remote_storage_movies_mount', 'remote_storage_series_mount'],
+                        'auto_settings': ['remote_storage_auto_mount']
+                    } %}
+                    
+                    {% set group_titles = {
+                        'connection': {'ar': 'إعدادات الاتصال', 'en': 'Connection Settings'},
+                        'authentication': {'ar': 'إعدادات المصادقة', 'en': 'Authentication Settings'},
+                        'paths': {'ar': 'مسار التخزين البعيد', 'en': 'Remote Storage Path'},
+                        'mount_points': {'ar': 'نقاط التحميل المحلية', 'en': 'Local Mount Points'},
+                        'auto_settings': {'ar': 'الإعدادات التلقائية', 'en': 'Automatic Settings'}
+                    } %}
+                    
+                    {% for group_key, field_keys in field_groups.items() %}
+                        {% set group_fields = items | selectattr('key', 'in', field_keys) | list %}
+                        {% if group_fields %}
+                            <div class="settings-group {{ group_key }}-group" style="margin-bottom: 30px;">
+                                <h5 class="group-title" style="color: var(--accent-primary); margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid var(--border-color); font-weight: 600;">
+                                    <i data-feather="{% if group_key == 'connection' %}wifi{% elif group_key == 'authentication' %}key{% elif group_key == 'paths' %}folder{% elif group_key == 'mount_points' %}hard-drive{% else %}settings{% endif %}"></i>
+                                    {{ t('remote_' + group_key + '_title') }}
+                                </h5>
+                                
+                                {% for item in group_fields %}
+                                    <div class="form-group">
+                                        <label for="{{ item.key }}">
+                                            {{ item.translated_description }}
+                                            <small style="color: var(--text-secondary); font-weight: normal;">({{ item.key }})</small>
+                                        </label>
+                                        {% if item.type == 'password' %}
+                                            <input type="password" id="{{ item.key }}" name="{{ item.key }}" placeholder="******** ({{ t('leave_empty_no_change') }})">
+                                        {% elif item.type == 'select' %}
+                                            <select id="{{ item.key }}" name="{{ item.key }}">
+                                                {% for option in item.option_list %}
+                                                    <option value="{{ option.value }}" {% if item.value == option.value %}selected{% endif %}>
+                                                        {{ option.label }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        {% elif (item.key.endswith('_path') or item.key.endswith('_mount') or item.key.endswith('_root')) and item.type != 'select' %}
+                                            <div class="input-with-browse">
+                                                <input type="{{ item.type }}" id="{{ item.key }}" name="{{ item.key }}" value="{{ item.value }}">
+                                                <button type="button" class="browse-btn" onclick="openFileBrowser('{{ item.key }}')">
+                                                    📁 {{ t('browse') }}
+                                                </button>
+                                            </div>
+                                        {% else %}
+                                            <input type="{{ item.type }}" id="{{ item.key }}" name="{{ item.key }}" value="{{ item.value }}">
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    {% for item in items %}
+                    <div class="form-group">
+                        <label for="{{ item.key }}">
+                            {{ item.translated_description }}
+                            <small style="color: var(--text-secondary); font-weight: normal;">({{ item.key }})</small>
+                        </label>
+                        {% if item.key == 'ollama_model' %}
+                            <div class="model-info">
+                                <small style="color: var(--text-warning); display: block; margin-bottom: 5px;">
+                                    ⚠️ {{ t('ollama_model_warning') }}: <code>ollama pull model_name</code>
+                                </small>
+                            </div>
+                        {% elif item.key == 'whisper_model' %}
+                            <div class="model-info">
+                                <small style="color: var(--text-info); display: block; margin-bottom: 5px;">
+                                    ℹ️ {{ t('whisper_model_info') }}
+                                </small>
+                            </div>
+                        {% endif %}
+                        {% if item.type == 'password' %}
+                            <input type="password" id="{{ item.key }}" name="{{ item.key }}" placeholder="******** ({{ t('leave_empty_no_change') }})">
+                        {% elif item.type == 'select' %}
+                            <select id="{{ item.key }}" name="{{ item.key }}">
+                                {% for option in item.option_list %}
+                                    <option value="{{ option.value }}" {% if item.value == option.value %}selected{% endif %}>
+                                        {{ option.label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        {% elif (item.key.endswith('_path') or item.key.endswith('_mount') or item.key.endswith('_root')) and item.type != 'select' %}
+                            <div class="input-with-browse">
+                                <input type="{{ item.type }}" id="{{ item.key }}" name="{{ item.key }}" value="{{ item.value }}">
+                                <button type="button" class="browse-btn" onclick="openFileBrowser('{{ item.key }}')">
+                                    📁 {{ t('browse') }}
+                                </button>
+                            </div>
+                        {% else %}
+                            <input type="{{ item.type }}" id="{{ item.key }}" name="{{ item.key }}" value="{{ item.value }}">
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                <button type="submit" class="action-btn btn-save">
+                    <i data-feather="save"></i>
+                    {{ t('save_settings') }} 
+                    {% if section == 'DEFAULT' %}
+                        {{ t('general_settings') }}
+                    {% elif section == 'API' %}
+                        {{ t('api_settings') }}
+                    {% elif section == 'PATHS' %}
+                        {{ t('path_settings') }}
+                    {% elif section == 'MODELS' %}
+                        {{ t('model_settings') }}
+                    {% elif section == 'CORRECTIONS' %}
+                        {{ t('correction_settings') }}
+                    {% elif section == 'UI' %}
+                        {{ t('interface_settings') }}
+                    {% elif section == 'PROCESSING' %}
+                        {{ t('processing_settings') }}
+                    {% elif section == 'MONITORING' %}
+                        {{ t('monitoring_settings') }}
+                    {% elif section == 'FOOTER' %}
+                        {{ t('footer_settings') }}
+                    {% elif section == 'LANGUAGE' %}
+                        {{ t('language_settings') }}
+                    {% else %}
+                        {{ section }}
+                    {% endif %}
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </form>
+
+    <!-- GPU Management Tab -->
+    <div class="tab-content hidden" id="tab-gpu">
+        <div class="form-section">
+            <h3 style="color: var(--accent-primary); display: flex; align-items: center; gap: 10px;">
+                <i data-feather="cpu"></i> {{ t('gpu_management') }}
+            </h3>
+            {% include 'gpu_management.html' %}
+        </div>
+    </div>
+
+    <!-- Library Management Tab -->
+    <div class="tab-content hidden" id="tab-library">
+        <div class="form-section">
+            <h3>{{ t('library_management') }}</h3>
+            <p>{{ t('sync_library_description') }}</p>
+            <form action="{{ url_for('action_sync_library') }}" method="post" style="display: inline;">
+                <button type="submit" class="action-btn">
+                    <i data-feather="refresh-cw"></i>
+                    {{ t('sync_library') }}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Database Administration Tab -->
+    <div class="tab-content hidden" id="tab-database">
+        <div class="form-section">
+            <h3>{{ t('database_admin') }}</h3>
+            
+            <!-- Database Actions Grid -->
+            <div class="database-actions-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <button class="action-btn database-action-btn" onclick="loadDatabaseStats()" data-action="stats">
+                    <i data-feather="bar-chart-2"></i>
+                    <span>{{ t('database_stats') }}</span>
+                    <small>{{ t('view_database_statistics') }}</small>
+                </button>
+                <button class="action-btn database-action-btn" onclick="loadDatabaseTables()" data-action="tables">
+                    <i data-feather="grid"></i>
+                    <span>{{ t('view_tables') }}</span>
+                    <small>{{ t('explore_database_structure') }}</small>
+                </button>
+                <button class="action-btn database-action-btn" onclick="showSqlConsole()" data-action="sql">
+                    <i data-feather="terminal"></i>
+                    <span>{{ t('sql_console') }}</span>
+                    <small>{{ t('execute_custom_queries') }}</small>
+                </button>
+                <button class="action-btn database-action-btn" onclick="backupDatabase()" data-action="backup">
+                    <i data-feather="download"></i>
+                    <span>{{ t('backup_database') }}</span>
+                    <small>{{ t('create_database_backup') }}</small>
+                </button>
+                <button class="action-btn database-action-btn" onclick="optimizeDatabase()" data-action="optimize">
+                    <i data-feather="zap"></i>
+                    <span>{{ t('optimize_database') }}</span>
+                    <small>{{ t('improve_performance') }}</small>
+                </button>
+                <button class="action-btn database-action-btn" onclick="cleanupDatabase()" data-action="cleanup">
+                    <i data-feather="trash-2"></i>
+                    <span>{{ t('cleanup_data') }}</span>
+                    <small>{{ t('remove_old_records') }}</small>
+                </button>
+            </div>
+            
+            <!-- Database Content Area -->
+            <div id="database-content" class="database-content-area">
+                <div class="welcome-message">
+                    <i data-feather="database" style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1rem;"></i>
+                    <h4>{{ t('database_management') }}</h4>
+                    <p>{{ t('select_action_to_start') }}</p>
+                </div>
+            </div>
+        </div>
+        
+
+    <!-- Development Tools Tab -->
+    <div class="tab-content hidden" id="tab-DEVELOPMENT">
+        <div class="form-section">
+            <h3 style="color: var(--accent-primary); display: flex; align-items: center; gap: 10px;">
+                <i data-feather="code"></i> {{ t('development_tools') }}
+            </h3>
+            
+            <!-- Warning Section -->
+            <div class="help-section" style="background: var(--accent-warning-bg, rgba(245, 158, 11, 0.1)); padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent-warning);">
+                <h4 style="display: flex; align-items: center; gap: 8px; color: var(--accent-warning); margin-bottom: 15px;">
+                    <i data-feather="alert-triangle"></i> {{ t('development_mode_warning') }}
+                </h4>
+                <p style="color: var(--text-secondary); margin: 0;">
+                    {{ t('development_mode_description') }}
+                </p>
+            </div>
+
+            <!-- Development Settings Form -->
+            <form method="post" action="{{ url_for('settings_page') }}">
+                {% for item in settings_by_section.get('DEVELOPMENT', []) %}
+                <div class="form-group">
+                    <label for="{{ item.key }}">
+                        {{ item.translated_description }}
+                        <small style="color: var(--text-secondary); font-weight: normal;">({{ item.key }})</small>
+                    </label>
+                    {% if item.type == 'select' %}
+                        <select id="{{ item.key }}" name="{{ item.key }}">
+                            {% if item.options %}
+                                {% for option_pair in item.options.split(',') %}
+                                    {% if ':' in option_pair %}
+                                        {% set opt_val, opt_label = option_pair.split(':', 1) %}
+                                        <option value="{{ opt_val }}" {% if item.value == opt_val %}selected{% endif %}>
+                                            {{ opt_label }}
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <option value="false" {% if item.value == 'false' %}selected{% endif %}>{{ t('disabled') }}</option>
+                                <option value="true" {% if item.value == 'true' %}selected{% endif %}>{{ t('enabled') }}</option>
+                            {% endif %}
+                        </select>
+                    {% else %}
+                        <input type="{{ item.type }}" id="{{ item.key }}" name="{{ item.key }}" value="{{ item.value }}">
+                    {% endif %}
+                </div>
+                {% endfor %}
+                
+                <button type="submit" class="action-btn btn-save">
+                    <i data-feather="save"></i>
+                    {{ t('save_development_settings') }}
+                </button>
+            </form>
+
+            <!-- Development Status Display -->
+            <div id="development-status" class="status-display" style="margin-top: 20px; padding: 15px; background: var(--bg-success); border-radius: 8px; border-left: 4px solid var(--accent-success);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-feather="check-circle" style="color: var(--accent-success);"></i>
+                    <span style="color: var(--text-success); font-weight: 500;">{{ t('development_tools_ready') }}</span>
+                </div>
+            </div>
+
+            <!-- Development Actions -->
+            <div style="margin-top: 30px; padding: 20px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color);">
+                <h4 style="color: var(--accent-info); margin-bottom: 15px;">
+                    <i data-feather="tool"></i> {{ t('development_actions') }}
+                </h4>
+                
+                <div class="database-actions-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                    <!-- Sample Data Creation -->
+                    <div class="action-group" style="padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
+                        <h5 style="color: var(--accent-primary); margin-bottom: 10px;">{{ t('sample_data_management') }}</h5>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <button class="action-btn btn-info" onclick="createSampleTranslationLogs()" style="font-size: 0.9em;">
+                                <i data-feather="file-plus"></i>
+                                {{ t('create_sample_translation_logs') }}
+                            </button>
+                            <button class="action-btn btn-info" onclick="createSampleMediaFiles()" style="font-size: 0.9em;">
+                                <i data-feather="film"></i>
+                                {{ t('create_sample_media_files') }}
+                            </button>
+                            <button class="action-btn btn-info" onclick="createSampleBlacklist()" style="font-size: 0.9em;">
+                                <i data-feather="x-circle"></i>
+                                {{ t('create_sample_blacklist') }}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Data Cleanup -->
+                    <div class="action-group" style="padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
+                        <h5 style="color: var(--accent-warning); margin-bottom: 10px;">{{ t('data_cleanup') }}</h5>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <button class="action-btn btn-warning" onclick="clearSampleMediaFiles()" style="font-size: 0.9em;">
+                                <i data-feather="trash-2"></i>
+                                {{ t('clear_sample_media_files') }}
+                            </button>
+                            <button class="action-btn btn-warning" onclick="clearSampleBlacklist()" style="font-size: 0.9em;">
+                                <i data-feather="x"></i>
+                                {{ t('clear_sample_blacklist') }}
+                            </button>
+                            <button class="action-btn btn-warning" onclick="clearSampleTranslationLogs()" style="font-size: 0.9em;">
+                                <i data-feather="file-text"></i>
+                                {{ t('clear_sample_translation_logs') }}
+                            </button>
+                            <button class="action-btn btn-danger" onclick="clearAllSampleData()" style="font-size: 0.9em;">
+                                <i data-feather="delete"></i>
+                                {{ t('clear_all_sample_data') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Development Status -->
+                <div id="development-status" style="margin-top: 15px; padding: 10px; background: var(--bg-primary); border-radius: 4px; font-family: monospace; font-size: 0.9em; min-height: 40px;">
+                    {{ t('development_tools_ready') }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block head_extra %}
+<style>
+.settings-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.database-action-btn {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem 1rem;
+    min-height: 120px;
+    position: relative;
+}
+
+.database-action-btn i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent-primary);
+}
+
+.database-action-btn span {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.database-action-btn small {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.database-content-area {
+    background-color: var(--bg-secondary);
+    padding: 2rem;
+    border-radius: 8px;
+    min-height: 400px;
+    border: 1px solid var(--border-color);
+}
+
+.welcome-message {
+    text-align: center;
+    padding: 2rem;
+}
+
+.welcome-message i {
+    display: block;
+    margin: 0 auto 1rem;
+}
+
+.welcome-message h4 {
+    margin: 0 0 1rem 0;
+    color: var(--text-primary);
+}
+
+.welcome-message p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.sql-console {
+    direction: rtl;
+    text-align: right;
+}
+
+.sql-console h4 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: var(--accent-primary);
+}
+
+.sql-input-area {
+    margin-bottom: 1.5rem;
+}
+
+.sql-actions {
+    direction: rtl;
+}
+
+/* Log Styles */
+.log-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.log-container {
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    max-height: 500px;
+    min-height: 300px;
+    overflow-y: auto;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.log-content {
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    direction: ltr;
+    text-align: left;
+    min-height: 260px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.log-entry {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border-left: 3px solid var(--border-color);
+}
+
+.log-entry.error {
+    background: rgba(239, 68, 68, 0.1);
+    border-left-color: #ef4444;
+    color: #ef4444;
+}
+
+.log-entry.warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-left-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.log-entry.info {
+    background: rgba(59, 130, 246, 0.1);
+    border-left-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.log-timestamp {
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+
+.log-level {
+    font-weight: bold;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+}
+
+.log-message {
+    margin-top: 0.25rem;
+}
+
+.loading-message, .empty-message, .error-message {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.success-message {
+    text-align: center;
+    padding: 2rem;
+    color: var(--accent-green);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.loading-message .spinner {
+    animation: spin 1s linear infinite;
+    margin-bottom: 0.5rem;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.form-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-section h3:before {
+    content: '';
+    width: 4px;
+    height: 1.5rem;
+    background: var(--accent-primary);
+    border-radius: 2px;
+}
+
+/* Settings Navigation Styles */
+.settings-navigation {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.navigation-header h3 {
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.category-dropdown-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.dropdown-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dropdown-label {
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 0.9em;
+}
+
+.category-select,
+.subcategory-select {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 1em;
+    transition: all 0.3s ease;
+}
+
+.category-select:hover,
+.subcategory-select:hover {
+    border-color: var(--accent-primary);
+}
+
+.category-select:focus,
+.subcategory-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Dropdown options styling */
+.category-select option,
+.subcategory-select option {
+    background: var(--input-bg);
+    color: var(--text-primary);
+    padding: 8px 12px;
+}
+
+/* Ensure proper styling for all select elements in settings */
+select {
+    background: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+select option {
+    background: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+@media (max-width: 768px) {
+    .settings-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .database-actions-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .database-action-btn {
+        min-height: 80px;
+    }
+    
+    .category-dropdown-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}
+</style>
+{% endblock %}
+
+<!-- File Browser Modal -->
+{% include 'file-browser-modal.html' %}
+
+{% block scripts %}
+<script>
+    // Get current language
+    const currentLang = document.documentElement.getAttribute('lang') || 'ar';
+    
+    // Initialize with current language - will be updated dynamically
+    let settingsCategories = {};
+
+    let currentCategory = 'general';
+    let currentSubcategory = 'DEFAULT';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize navigation after a short delay to ensure elements are ready
+        setTimeout(function() {
+            // Refresh dropdown translations first
+            refreshSettingsDropdowns();
+            initializeSettingsNavigation();
+            // Initialize first tab
+            switchToTab('DEFAULT');
+            // Load current server info
+            loadCurrentServerInfo();
+            // Update form dropdowns after page load
+            updateFormDropdowns();
+            // Update tab titles after page load
+            updateTabTitles();
+        }, 100);
+    });
+
+    // Load current server information
+    function loadCurrentServerInfo() {
+        fetch('/api/server-config/status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.current_config) {
+                    const hostDisplay = document.getElementById('current-host-display');
+                    const portDisplay = document.getElementById('current-port-display');
+                    
+                    if (hostDisplay) {
+                        // Show actual host if available, otherwise saved host
+                        const displayHost = data.current_config.actual_host || data.current_config.host || '0.0.0.0';
+                        hostDisplay.textContent = displayHost;
+                        
+                        // Update the server_host input field if it exists and is empty or default
+                        const hostInput = document.querySelector('input[name="server_host"]');
+                        if (hostInput) {
+                            if (!hostInput.value || hostInput.value === '0.0.0.0') {
+                                hostInput.value = displayHost;
+                            }
+                        }
+                    }
+                    
+                    if (portDisplay) {
+                        const port = data.current_config.port || 5000;
+                        portDisplay.textContent = port;
+                        
+                        // Update the server_port input field if it exists
+                        const portInput = document.querySelector('input[name="server_port"]');
+                        if (portInput) {
+                            if (!portInput.value || portInput.value === '5000') {
+                                portInput.value = port;
+                            }
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.log('Server config status not available:', error);
+                // Set fallback values using current browser info
+                const hostDisplay = document.getElementById('current-host-display');
+                const portDisplay = document.getElementById('current-port-display');
+                
+                const currentHost = window.location.hostname || '0.0.0.0';
+                const currentPort = window.location.port || '5000';
+                
+                if (hostDisplay) hostDisplay.textContent = currentHost;
+                if (portDisplay) portDisplay.textContent = currentPort;
+                
+                // Update input fields with current browser values
+                const hostInput = document.querySelector('input[name="server_host"]');
+                const portInput = document.querySelector('input[name="server_port"]');
+                
+                if (hostInput && (!hostInput.value || hostInput.value === '0.0.0.0')) {
+                    hostInput.value = currentHost;
+                }
+                if (portInput && (!portInput.value || portInput.value === '5000')) {
+                    portInput.value = currentPort;
+                }
+            });
+    }
+
+    function initializeSettingsNavigation() {
+        const categorySelect = document.getElementById('category-select');
+        const subcategorySelect = document.getElementById('subcategory-select');
+        
+        if (!categorySelect || !subcategorySelect) return;
+        
+        // Populate category dropdown with current categories
+        const currentCategories = window.settingsCategories || settingsCategories;
+        categorySelect.innerHTML = '';
+        Object.keys(currentCategories).forEach(categoryKey => {
+            const option = document.createElement('option');
+            option.value = categoryKey;
+            option.textContent = currentCategories[categoryKey].name;
+            categorySelect.appendChild(option);
+        });
+        
+    }
+
+    window.switchCategory = function() {
+        const categorySelect = document.getElementById('category-select');
+        const subcategorySelect = document.getElementById('subcategory-select');
+        
+        if (!categorySelect || !subcategorySelect) return;
+        
+        // Use categorySelect.value directly and current categories
+        const currentCategories = window.settingsCategories || settingsCategories;
+        const category = currentCategories[categorySelect.value];
+        
+        if (!category) return;
+        
+        // Clear and populate subcategory dropdown
+        subcategorySelect.innerHTML = '';
+        Object.keys(category.subcategories).forEach(subKey => {
+            const option = document.createElement('option');
+            option.value = subKey;
+            option.textContent = category.subcategories[subKey];
+            subcategorySelect.appendChild(option);
+        });
+        
+        // Set first subcategory as default
+        const firstSubcategory = Object.keys(category.subcategories)[0];
+        if (firstSubcategory) {
+            subcategorySelect.value = firstSubcategory;
+            // Don't reassign const variable - use firstSubcategory directly
+            
+            // Switch to the first tab in this category
+            switchToTab(firstSubcategory);
+        }
+    };
+
+    // Function to refresh dropdown options with current language
+    window.refreshSettingsDropdowns = function() {
+        const currentLang = document.documentElement.getAttribute('lang') || 'ar';
+        
+        // Update all settings categories with correct language
+        const updatedSettingsCategories = {
+            general: {
+                name: currentLang === 'ar' ? "الإعدادات العامة" : "General Settings",
+                subcategories: {
+                    'DEFAULT': currentLang === 'ar' ? 'الإعدادات الأساسية' : 'Basic Settings',
+                    'LANGUAGE': currentLang === 'ar' ? 'إعدادات اللغة' : 'Language Settings',
+                    'FOOTER': currentLang === 'ar' ? 'إعدادات التذييل' : 'Footer Settings'
+                }
+            },
+            ai: {
+                name: currentLang === 'ar' ? "الذكاء الاصطناعي" : "AI Services",
+                subcategories: {
+                    'MODELS': currentLang === 'ar' ? 'نماذج الذكاء الاصطناعي' : 'AI Models',
+                    'API': currentLang === 'ar' ? 'خدمة Ollama' : 'Ollama Service',
+                    'gpu': currentLang === 'ar' ? 'إدارة كروت الشاشة' : 'GPU Management'
+                }
+            },
+            media: {
+                name: currentLang === 'ar' ? "خوادم الوسائط" : "Media Servers",
+                subcategories: {
+                    'streaming': currentLang === 'ar' ? 'خوادم البث' : 'Streaming Servers',
+                    'management': currentLang === 'ar' ? 'إدارة المحتوى' : 'Content Management', 
+                    'testing': currentLang === 'ar' ? 'اختبار الاتصال' : 'Connection Testing'
+                }
+            },
+            storage: {
+                name: currentLang === 'ar' ? "إدارة التخزين" : "Storage Management",
+                subcategories: {
+                    'REMOTE_STORAGE': currentLang === 'ar' ? 'التخزين البعيد' : 'Remote Storage',
+                    'PATHS': currentLang === 'ar' ? 'مسارات الملفات' : 'File Paths'
+                }
+            },
+            system: {
+                name: currentLang === 'ar' ? "إدارة النظام" : "System Management",
+                subcategories: {
+                    'SERVER': currentLang === 'ar' ? 'تكوين الخادم' : 'Server Configuration',
+                    'CORRECTIONS': currentLang === 'ar' ? 'تصحيح الترجمات' : 'Translation Corrections',
+                    'library': currentLang === 'ar' ? 'إدارة المكتبة' : 'Library Management',
+                    'database': currentLang === 'ar' ? 'إدارة قاعدة البيانات' : 'Database Admin'
+                }
+            },
+            development: {
+                name: currentLang === 'ar' ? "أدوات التطوير" : "Development Tools",
+                subcategories: {
+                    'DEVELOPMENT': currentLang === 'ar' ? 'أدوات التطوير' : 'Development Tools'
+                }
+            }
+        };
+        
+        // Use the updated categories for refresh
+        settingsCategories = updatedSettingsCategories;
+        window.settingsCategories = updatedSettingsCategories;
+        
+        // Refresh the dropdowns
+        initializeSettingsNavigation();
+        if (window.switchCategory) {
+            window.switchCategory();
+        }
+        
+        // Update form dropdowns too
+        updateFormDropdowns();
+        
+        // Update tab titles too
+        updateTabTitles();
+    };
+
+    // Function to update tab titles based on current language
+    function updateTabTitles() {
+        const currentLang = document.documentElement.getAttribute('lang') || 'ar';
+        
+        // Update development tools tab title
+        const developmentTitle = document.querySelector('#tab-DEVELOPMENT h3');
+        if (developmentTitle) {
+            const icon = developmentTitle.querySelector('i');
+            const iconHTML = icon ? icon.outerHTML : '<i data-feather="code"></i>';
+            const titleText = currentLang === 'ar' ? 'أدوات التطوير' : 'Development Tools';
+            developmentTitle.innerHTML = `${iconHTML} ${titleText}`;
+        }
+        
+        // Update other tab titles if needed
+        const generalTitle = document.querySelector('#tab-DEFAULT h3');
+        if (generalTitle) {
+            const icon = generalTitle.querySelector('i');
+            const iconHTML = icon ? icon.outerHTML : '<i data-feather="settings"></i>';
+            const titleText = currentLang === 'ar' ? 'الإعدادات الأساسية' : 'Basic Settings';
+            generalTitle.innerHTML = `${iconHTML} ${titleText}`;
+        }
+        
+        // Refresh feather icons after updating
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    }
+
+    // Function to update form dropdown options based on current language
+    function updateFormDropdowns() {
+        const currentLang = document.documentElement.getAttribute('lang') || 'ar';
+        
+        // Define dropdown options for different languages
+        const dropdownOptions = {
+            'default_language': {
+                'ar': {'ar': 'العربية', 'en': 'الإنجليزية'},
+                'en': {'ar': 'Arabic', 'en': 'English'}
+            },
+            'default_theme': {
+                'ar': {'dark': 'داكن', 'light': 'فاتح', 'system': 'تلقائي'},
+                'en': {'dark': 'Dark', 'light': 'Light', 'system': 'Auto'}
+            },
+            'items_per_page': {
+                'ar': {'12': '12', '24': '24', '48': '48', '96': '96'},
+                'en': {'12': '12', '24': '24', '48': '48', '96': '96'}
+            },
+            'whisper_model': {
+                'ar': {
+                    'tiny.en': 'صغير جداً',
+                    'base.en': 'أساسي', 
+                    'small.en': 'صغير',
+                    'medium.en': 'متوسط',
+                    'large': 'كبير'
+                },
+                'en': {
+                    'tiny.en': 'Tiny',
+                    'base.en': 'Base',
+                    'small.en': 'Small', 
+                    'medium.en': 'Medium',
+                    'large': 'Large'
+                }
+            },
+            'ollama_model': {
+                'ar': {
+                    'llama3': 'Llama 3',
+                    'llama3.1': 'Llama 3.1',
+                    'mistral': 'Mistral',
+                    'codellama': 'Code Llama'
+                },
+                'en': {
+                    'llama3': 'Llama 3',
+                    'llama3.1': 'Llama 3.1',
+                    'mistral': 'Mistral',
+                    'codellama': 'Code Llama'
+                }
+            },
+            'whisper_model_gpu': {
+                'ar': {'auto': 'تلقائي', '0': 'GPU 0', '1': 'GPU 1', 'cpu': 'معالج فقط'},
+                'en': {'auto': 'Auto', '0': 'GPU 0', '1': 'GPU 1', 'cpu': 'CPU Only'}
+            },
+            'ollama_model_gpu': {
+                'ar': {'auto': 'تلقائي', '0': 'GPU 0', '1': 'GPU 1', 'cpu': 'معالج فقط'},
+                'en': {'auto': 'Auto', '0': 'GPU 0', '1': 'GPU 1', 'cpu': 'CPU Only'}
+            },
+            'debug_mode': {
+                'ar': {'true': 'مفعل', 'false': 'معطل'},
+                'en': {'true': 'Enabled', 'false': 'Disabled'}
+            },
+            'enable_testing_features': {
+                'ar': {'true': 'مفعل', 'false': 'معطل'},
+                'en': {'true': 'Enabled', 'false': 'Disabled'}
+            },
+            'log_level': {
+                'ar': {
+                    'DEBUG': 'تشخيص',
+                    'INFO': 'معلومات',
+                    'WARNING': 'تحذير',
+                    'ERROR': 'خطأ'
+                },
+                'en': {
+                    'DEBUG': 'Debug',
+                    'INFO': 'Info',
+                    'WARNING': 'Warning',
+                    'ERROR': 'Error'
+                }
+            }
+        };
+        
+        // Update each dropdown
+        Object.keys(dropdownOptions).forEach(selectName => {
+            const selectElement = document.getElementById(selectName);
+            if (selectElement && dropdownOptions[selectName][currentLang]) {
+                const currentValue = selectElement.value;
+                const options = dropdownOptions[selectName][currentLang];
+                
+                // Clear existing options
+                selectElement.innerHTML = '';
+                
+                // Add new options with correct language
+                Object.keys(options).forEach(value => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = options[value];
+                    if (value === currentValue) {
+                        option.selected = true;
+                    }
+                    selectElement.appendChild(option);
+                });
+            }
+        });
+    }
+
+    // Save current selection to sessionStorage
+    window.saveCurrentSelection = function() {
+        const categorySelect = document.getElementById('category-select');
+        const subcategorySelect = document.getElementById('subcategory-select');
+        
+        if (categorySelect && subcategorySelect) {
+            sessionStorage.setItem('selectedCategory', categorySelect.value);
+            sessionStorage.setItem('selectedSubcategory', subcategorySelect.value);
+        }
+    };
+    
+    // Restore selection from sessionStorage
+    window.restoreSelection = function() {
+        const savedCategory = sessionStorage.getItem('selectedCategory');
+        const savedSubcategory = sessionStorage.getItem('selectedSubcategory');
+        
+        const categorySelect = document.getElementById('category-select');
+        const subcategorySelect = document.getElementById('subcategory-select');
+        
+        if (savedCategory && categorySelect) {
+            categorySelect.value = savedCategory;
+            if (window.switchCategory) {
+                window.switchCategory();
+            }
+            
+            if (savedSubcategory && subcategorySelect) {
+                setTimeout(function() {
+                    subcategorySelect.value = savedSubcategory;
+                    // Don't reassign const variable - it's set automatically
+                    switchToTab(savedSubcategory);
+                }, 50);
+            }
+        }
+    };
+
+    // Initialize categories after definition
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set initial category and populate subcategories  
+        setTimeout(function() {
+            refreshSettingsDropdowns();
+            // Try to restore previous selection
+            setTimeout(restoreSelection, 150);
+        }, 100);
+        
+        // Save selection when changing categories/subcategories
+        document.addEventListener('change', function(e) {
+            if (e.target.id === 'category-select' || e.target.id === 'subcategory-select') {
+                saveCurrentSelection();
+            }
+        });
+    });
+
+    window.switchTab = function() {
+        const subcategorySelect = document.getElementById('subcategory-select');
+        if (!subcategorySelect) return;
+        
+        currentSubcategory = subcategorySelect.value;
+        switchToTab(currentSubcategory);
+    };
+
+    function switchToTab(tabId) {
+        // Hide all tab contents
+        const contents = document.querySelectorAll('.tab-content');
+        contents.forEach(content => {
+            content.classList.add('hidden');
+        });
+        
+        // Special handling for database admin tab
+        if (tabId === 'database') {
+            // Redirect to database admin page
+            window.location.href = '/database-admin';
+            return;
+        }
+        
+        // Show selected tab
+        const targetTab = document.getElementById(`tab-${tabId}`);
+        if (targetTab) {
+            targetTab.classList.remove('hidden');
+            
+            // If it's the GPU tab, refresh GPU info
+            if (tabId === 'gpu' && typeof refreshGPUInfo === 'function') {
+                setTimeout(refreshGPUInfo, 100);
+            }
+        }
+    }
+
+    // Optimized tab system for better performance
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('.tab-link');
+        const contents = document.querySelectorAll('.tab-content');
+        
+        // Use event delegation for better performance
+        document.querySelector('.tab-nav')?.addEventListener('click', function(e) {
+            const tab = e.target.closest('.tab-link');
+            if (!tab) return;
+            
+            // Use requestAnimationFrame for smooth transitions
+            requestAnimationFrame(() => {
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.add('hidden'));
+                tab.classList.add('active');
+                const targetTab = document.getElementById(`tab-${tab.dataset.tab}`);
+                if (targetTab) {
+                    targetTab.classList.remove('hidden');
+                }
+            });
+        });
+
+        // Database management functions
+        function showDatabaseLoading() {
+            const content = document.getElementById('database-content');
+            if (content) {
+                content.innerHTML = `
+                    <div class="loading-message">
+                        <i data-feather="loader" class="spinner"></i>
+                        <p>جاري تحميل البيانات...</p>
+                    </div>
+                `;
+                feather.replace();
+            }
+        }
+
+        function showDatabaseError(message) {
+            const content = document.getElementById('database-content');
+            if (content) {
+                content.innerHTML = `
+                    <div class="error-message">
+                        <i data-feather="alert-circle"></i>
+                        <p>${message}</p>
+                    </div>
+                `;
+                feather.replace();
+            }
+        }
+
+        function showDatabaseSuccess(message) {
+            const content = document.getElementById('database-content');
+            if (content) {
+                content.innerHTML = `
+                    <div class="success-message">
+                        <i data-feather="check-circle"></i>
+                        <p>${message}</p>
+                    </div>
+                `;
+                feather.replace();
+            }
+        }
+
+        window.loadDatabaseStats = function() {
+            showDatabaseLoading();
+            
+            fetch('/api/database/stats', {
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                
+                if (data.error) {
+                    showDatabaseError(`خطأ: ${data.error}`);
+                    return;
+                }
+                
+                let html = `
+                    <div class="database-stats-container">
+                        <div class="stats-header">
+                            <h4><i data-feather="bar-chart-2"></i> إحصائيات قاعدة البيانات</h4>
+                        </div>
+                        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                            <div class="stat-card" style="background: var(--bg-primary); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                                <i data-feather="hard-drive" style="font-size: 2rem; color: var(--accent-primary); margin-bottom: 0.5rem;"></i>
+                                <h5 style="margin: 0 0 0.5rem 0; color: var(--text-secondary);">حجم قاعدة البيانات</h5>
+                                <p class="stat-value" style="font-size: 1.5rem; font-weight: bold; color: var(--accent-primary); margin: 0;">${data.total_size_mb} ميجابايت</p>
+                            </div>
+                            <div class="stat-card" style="background: var(--bg-primary); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                                <i data-feather="grid" style="font-size: 2rem; color: var(--accent-green); margin-bottom: 0.5rem;"></i>
+                                <h5 style="margin: 0 0 0.5rem 0; color: var(--text-secondary);">عدد الجداول</h5>
+                                <p class="stat-value" style="font-size: 1.5rem; font-weight: bold; color: var(--accent-green); margin: 0;">${data.table_count}</p>
+                            </div>
+                            <div class="stat-card" style="background: var(--bg-primary); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                                <i data-feather="layers" style="font-size: 2rem; color: var(--accent-yellow); margin-bottom: 0.5rem;"></i>
+                                <h5 style="margin: 0 0 0.5rem 0; color: var(--text-secondary);">إجمالي السجلات</h5>
+                                <p class="stat-value" style="font-size: 1.5rem; font-weight: bold; color: var(--accent-yellow); margin: 0;">${data.total_records.toLocaleString()}</p>
+                            </div>
+                            <div class="stat-card" style="background: var(--bg-primary); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                                <i data-feather="download" style="font-size: 2rem; color: var(--accent-purple); margin-bottom: 0.5rem;"></i>
+                                <h5 style="margin: 0 0 0.5rem 0; color: var(--text-secondary);">آخر نسخة احتياطية</h5>
+                                <p class="stat-value" style="font-size: 1rem; font-weight: bold; color: var(--accent-purple); margin: 0;">${data.last_backup}</p>
+                            </div>
+                        </div>
+                `;
+                
+                // Add tables breakdown if available
+                if (data.tables && data.tables.length > 0) {
+                    html += `
+                        <div class="tables-breakdown">
+                            <h5 style="margin-bottom: 1rem; color: var(--text-primary);">تفصيل الجداول:</h5>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                                    <thead>
+                                        <tr style="background: var(--bg-secondary);">
+                                            <th style="padding: 0.75rem; border: 1px solid var(--border-color); text-align: right;">اسم الجدول</th>
+                                            <th style="padding: 0.75rem; border: 1px solid var(--border-color); text-align: center;">عدد السجلات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+                    
+                    data.tables.forEach(table => {
+                        html += `
+                            <tr>
+                                <td style="padding: 0.75rem; border: 1px solid var(--border-color);">${table.name}</td>
+                                <td style="padding: 0.75rem; border: 1px solid var(--border-color); text-align: center;">${table.record_count.toLocaleString()}</td>
+                            </tr>`;
+                    });
+                    
+                    html += `</tbody></table></div></div>`;
+                }
+                
+                html += `</div>`;
+                
+                document.getElementById('database-content').innerHTML = html;
+                feather.replace();
+            })
+            .catch(error => {
+                showDatabaseError('خطأ في تحميل الإحصائيات');
+            });
+        };
+
+        window.loadDatabaseTables = function() {
+            showDatabaseLoading();
+            
+            fetch('/api/database/tables', {
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                
+                if (data.error) {
+                    showDatabaseError(`خطأ: ${data.error}`);
+                    return;
+                }
+                
+                let html = `
+                    <div class="database-tables-container">
+                        <div class="stats-header">
+                            <h4><i data-feather="grid"></i> جداول قاعدة البيانات</h4>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                                <thead>
+                                    <tr style="background: var(--bg-secondary);">
+                                        <th style="padding: 1rem; border: 1px solid var(--border-color); text-align: right; font-weight: bold;">اسم الجدول</th>
+                                        <th style="padding: 1rem; border: 1px solid var(--border-color); text-align: right; font-weight: bold;">الاسم المعروض</th>
+                                        <th style="padding: 1rem; border: 1px solid var(--border-color); text-align: center; font-weight: bold;">عدد السجلات</th>
+                                        <th style="padding: 1rem; border: 1px solid var(--border-color); text-align: center; font-weight: bold;">الحجم المقدر (ميجابايت)</th>
+                                        <th style="padding: 1rem; border: 1px solid var(--border-color); text-align: center; font-weight: bold;">آخر تحديث</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+                
+                data.forEach(table => {
+                    html += `
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 0.75rem 1rem; border: 1px solid var(--border-color); font-family: monospace; direction: ltr; text-align: left;">${table.name}</td>
+                            <td style="padding: 0.75rem 1rem; border: 1px solid var(--border-color); font-weight: 500;">${table.display_name || table.name}</td>
+                            <td style="padding: 0.75rem 1rem; border: 1px solid var(--border-color); text-align: center; color: var(--accent-primary); font-weight: bold;">${table.record_count.toLocaleString()}</td>
+                            <td style="padding: 0.75rem 1rem; border: 1px solid var(--border-color); text-align: center; color: var(--accent-green);">${table.size_mb}</td>
+                            <td style="padding: 0.75rem 1rem; border: 1px solid var(--border-color); text-align: center; color: var(--text-secondary); font-size: 0.85rem;">${table.last_updated}</td>
+                        </tr>`;
+                });
+                
+                html += `</tbody></table></div>
+                    <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-primary); border-radius: 8px; border: 1px solid var(--border-color);">
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
+                            <i data-feather="info" style="width: 16px; height: 16px; margin-left: 0.5rem;"></i>
+                            تم عرض ${data.length} جدول من قاعدة البيانات
+                        </p>
+                    </div>
+                </div>`;
+                
+                document.getElementById('database-content').innerHTML = html;
+                feather.replace();
+            })
+            .catch(error => {
+                showDatabaseError('خطأ في تحميل الجداول');
+            });
+        };
+
+        window.backupDatabase = function() {
+            fetch('/api/database/backup', { 
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('تم إنشاء نسخة احتياطية بنجاح');
+                } else {
+                    alert('فشل في إنشاء النسخة الاحتياطية: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('خطأ في إنشاء النسخة الاحتياطية');
+            });
+        };
+
+        window.optimizeDatabase = function() {
+            showDatabaseLoading();
+            
+            fetch('/api/database/optimize', { 
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showDatabaseSuccess('تم تحسين قاعدة البيانات بنجاح');
+                } else {
+                    showDatabaseError('فشل في تحسين قاعدة البيانات: ' + data.error);
+                }
+            })
+            .catch(error => {
+                showDatabaseError('خطأ في تحسين قاعدة البيانات');
+            });
+        };
+
+        window.cleanupDatabase = function() {
+            if (!confirm('هل أنت متأكد من حذف البيانات القديمة؟ هذا الإجراء لا يمكن التراجع عنه.')) {
+                return;
+            }
+            
+            showDatabaseLoading();
+            
+            fetch('/api/database/cleanup', { 
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showDatabaseSuccess(`تم تنظيف قاعدة البيانات بنجاح. تم حذف ${data.cleaned_records} سجل`);
+                } else {
+                    showDatabaseError('فشل في تنظيف قاعدة البيانات: ' + data.error);
+                }
+            })
+            .catch(error => {
+                showDatabaseError('خطأ في تنظيف قاعدة البيانات');
+            });
+        };
+
+        window.showSqlConsole = function() {
+            const content = document.getElementById('database-content');
+            content.innerHTML = `
+                <div class="sql-console">
+                    <h4>وحدة تحكم SQL</h4>
+                    <div class="sql-input-area">
+                        <textarea id="sql-query" placeholder="أدخل استعلام SQL هنا..." rows="8" style="width: 100%; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem; font-family: monospace; direction: ltr; text-align: left;"></textarea>
+                        <div class="sql-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
+                            <button class="action-btn" onclick="executeSqlQuery()" style="background-color: var(--accent-primary);">
+                                <i data-feather="play"></i>
+                                تنفيذ الاستعلام
+                            </button>
+                            <button class="action-btn" onclick="clearSqlQuery()" style="background-color: var(--accent-yellow); color: var(--bg-dark);">
+                                <i data-feather="x"></i>
+                                مسح
+                            </button>
+                        </div>
+                    </div>
+                    <div id="sql-results" style="margin-top: 2rem; background: var(--bg-primary); padding: 1rem; border-radius: 4px; min-height: 200px;">
+                        <p style="color: var(--text-secondary);">النتائج ستظهر هنا</p>
+                    </div>
+                </div>
+            `;
+            feather.replace();
+        };
+
+        window.executeSqlQuery = function() {
+            const query = document.getElementById('sql-query').value.trim();
+            const resultsDiv = document.getElementById('sql-results');
+            
+            if (!query) {
+                resultsDiv.innerHTML = '<p style="color: var(--accent-red);">يرجى إدخال استعلام SQL</p>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<div style="text-align: center;"><div class="spinner"></div></div>';
+            
+            fetch('/api/database/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                
+                if (data.error) {
+                    resultsDiv.innerHTML = `<p style="color: var(--accent-danger);">خطأ: ${data.error}</p>`;
+                    return;
+                }
+                
+                if (data.results && data.results.length > 0) {
+                    let html = '<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">';
+                    
+                    // Headers
+                    if (data.results[0]) {
+                        html += '<thead><tr style="background: var(--bg-secondary);">';
+                        Object.keys(data.results[0]).forEach(key => {
+                            html += `<th style="padding: 0.75rem; border: 1px solid var(--border-color); text-align: right;">${key}</th>`;
+                        });
+                        html += '</tr></thead>';
+                    }
+                    
+                    // Rows
+                    html += '<tbody>';
+                    data.results.forEach(row => {
+                        html += '<tr>';
+                        Object.values(row).forEach(value => {
+                            html += `<td style="padding: 0.75rem; border: 1px solid var(--border-color);">${value || ''}</td>`;
+                        });
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table></div>';
+                    
+                    html += `<p style="margin-top: 1rem; color: var(--text-secondary);">عدد النتائج: ${data.results.length}</p>`;
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = '<p style="color: var(--accent-success);">تم تنفيذ الاستعلام بنجاح (لا توجد نتائج للعرض)</p>';
+                }
+            })
+            .catch(error => {
+                resultsDiv.innerHTML = `<p style="color: var(--accent-danger);">خطأ في تنفيذ الاستعلام: ${error.message}</p>`;
+            });
+        };
+
+        window.clearSqlQuery = function() {
+            document.getElementById('sql-query').value = '';
+            document.getElementById('sql-results').innerHTML = '<p style="color: var(--text-secondary);">النتائج ستظهر هنا</p>';
+        };
+
+        // Settings save functionality
+        window.saveAllSettings = function() {
+            const form = document.querySelector('form');
+            if (!form) {
+                alert('لم يتم العثور على النموذج');
+                return;
+            }
+            
+            const formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('تم حفظ الإعدادات بنجاح');
+                    location.reload();
+                } else {
+                    alert('فشل في حفظ الإعدادات');
+                }
+            })
+            .catch(error => {
+                alert('خطأ في حفظ الإعدادات: ' + error.message);
+            });
+        };
+
+        // SQL query execution is already defined above - no need for duplication
+
+        window.clearSqlQuery = function() {
+            document.getElementById('sql-query').value = '';
+            document.getElementById('sql-results').innerHTML = '<p style="color: var(--text-secondary);">النتائج ستظهر هنا</p>';
+        };
+
+        // Helper functions for database interface
+        function showDatabaseLoading() {
+            document.getElementById('database-content').innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner"></div><p>جارٍ المعالجة...</p></div>';
+        }
+
+        function showDatabaseSuccess(message) {
+            document.getElementById('database-content').innerHTML = `<div style="text-align: center; padding: 2rem;"><i data-feather="check-circle" style="font-size: 3rem; color: var(--accent-green); margin-bottom: 1rem;"></i><p style="color: var(--accent-green);">${message}</p></div>`;
+            feather.replace();
+        }
+
+        function showDatabaseError(message) {
+            document.getElementById('database-content').innerHTML = `<div style="text-align: center; padding: 2rem;"><i data-feather="alert-circle" style="font-size: 3rem; color: var(--accent-red); margin-bottom: 1rem;"></i><p style="color: var(--accent-red);">${message}</p></div>`;
+            feather.replace();
+        }
+
+        window.saveAllSettings = function() {
+            // Trigger save for all visible forms
+            const activeTab = document.querySelector('.tab-content:not(.hidden)');
+            const form = activeTab?.querySelector('form');
+            if (form) {
+                form.submit();
+            } else {
+                alert('لا توجد إعدادات للحفظ في هذا التبويب');
+            }
+        };
+
+        // Remote Storage Management Functions
+        window.testRemoteConnection = function() {
+            const statusDiv = document.getElementById('remote-storage-status');
+            const protocol = document.querySelector('[name="remote_storage_protocol"]')?.value;
+            const host = document.querySelector('[name="remote_storage_host"]')?.value;
+            const username = document.querySelector('[name="remote_storage_username"]')?.value;
+            const password = document.querySelector('[name="remote_storage_password"]')?.value;
+            const path = document.querySelector('[name="remote_storage_path"]')?.value;
+            const port = document.querySelector('[name="remote_storage_port"]')?.value;
+            
+            if (!protocol || !host || !username) {
+                statusDiv.innerHTML = '<span style="color: var(--accent-danger);">يرجى ملء جميع الحقول المطلوبة / Please fill all required fields</span>';
+                return;
+            }
+            
+            statusDiv.innerHTML = '<span style="color: var(--accent-warning);">جاري اختبار الاتصال... / Testing connection...</span>';
+            
+            fetch('/api/remote-mount-test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    protocol: protocol,
+                    host: host,
+                    username: username,
+                    password: password,
+                    path: path || '/',
+                    port: parseInt(port) || null
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusDiv.innerHTML = `<span style="color: var(--accent-green);">✓ ${data.message}</span>`;
+                    if (data.test_files) {
+                        statusDiv.innerHTML += `<br><small>الملفات الموجودة / Files found: ${data.test_files.join(', ')}</small>`;
+                    }
+                } else {
+                    statusDiv.innerHTML = `<span style="color: var(--accent-danger);">✗ خطأ / Error: ${data.error}</span>`;
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = `<span style="color: var(--accent-danger);">✗ خطأ في الشبكة / Network error: ${error}</span>`;
+            });
+        };
+
+        window.viewMountStatus = function() {
+            const statusDiv = document.getElementById('remote-storage-status');
+            statusDiv.innerHTML = '<span style="color: var(--accent-warning);">جاري جلب حالة التحميل... / Loading mount status...</span>';
+            
+            fetch('/api/remote-mount-status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let statusText = `إجمالي التحميلات / Total mounts: ${data.total_mounts}<br>`;
+                    if (data.mounts && data.mounts.length > 0) {
+                        data.mounts.forEach(mount => {
+                            const statusColor = mount.status === 'active' ? 'var(--accent-green)' : 'var(--accent-danger)';
+                            statusText += `<span style="color: ${statusColor};">${mount.mount_point} (${mount.protocol}) - ${mount.status}</span><br>`;
+                        });
+                    } else {
+                        statusText += 'لا توجد تحميلات نشطة / No active mounts';
+                    }
+                    statusDiv.innerHTML = statusText;
+                } else {
+                    statusDiv.innerHTML = `<span style="color: var(--accent-danger);">خطأ / Error: ${data.error}</span>`;
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = `<span style="color: var(--accent-danger);">خطأ في الشبكة / Network error: ${error}</span>`;
+            });
+        };
+
+        window.unmountRemote = function() {
+            const mountPoint = document.querySelector('[name="remote_storage_mount_point"]')?.value || '/mnt/remote';
+            const statusDiv = document.getElementById('remote-storage-status');
+            
+            if (!confirm('هل أنت متأكد من إلغاء التحميل؟ / Are you sure you want to unmount?')) {
+                return;
+            }
+            
+            statusDiv.innerHTML = '<span style="color: var(--accent-warning);">جاري إلغاء التحميل... / Unmounting...</span>';
+            
+            fetch('/api/remote-mount-unmount', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    mount_point: mountPoint
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusDiv.innerHTML = `<span style="color: var(--accent-green);">✓ ${data.message}</span>`;
+                } else {
+                    statusDiv.innerHTML = `<span style="color: var(--accent-danger);">✗ خطأ / Error: ${data.error}</span>`;
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = `<span style="color: var(--accent-danger);">خطأ في الشبكة / Network error: ${error}</span>`;
+            });
+        };
+
+        // Event listeners for remote storage controls
+        const testBtn = document.getElementById('test-remote-connection');
+        const statusBtn = document.getElementById('view-mount-status');
+        const unmountBtn = document.getElementById('unmount-remote');
+        
+        if (testBtn) testBtn.addEventListener('click', testRemoteConnection);
+        if (statusBtn) statusBtn.addEventListener('click', viewMountStatus);
+        if (unmountBtn) unmountBtn.addEventListener('click', unmountRemote);
+
+        // File browser functions are now in separate file-browser.js file
+
+        function loadFolders(path) {
+            const loadingDiv = document.getElementById('folder-loading');
+            const folderList = document.getElementById('folder-list');
+            
+            loadingDiv.style.display = 'flex';
+            folderList.innerHTML = '';
+            
+            // Real API call to browse folders
+            fetch('/api/browse-folders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ path: path })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingDiv.style.display = 'none';
+                
+                if (data.success) {
+                    folderList.innerHTML = '';
+                    
+                    // Add parent directory option
+                    if (path !== '/') {
+                        const parentPath = path.split('/').slice(0, -1).join('/') || '/';
+                        const parentItem = createFolderItem('..', parentPath, true);
+                        folderList.appendChild(parentItem);
+                    }
+                    
+                    // Add folders
+                    data.folders.forEach(folder => {
+                        const folderItem = createFolderItem(folder.name, folder.path, false);
+                        folderList.appendChild(folderItem);
+                    });
+                } else {
+                    folderList.innerHTML = '<li style="padding: 15px; color: var(--text-error);">خطأ في تحميل المجلدات: ' + data.error + '</li>';
+                }
+            })
+            .catch(error => {
+                loadingDiv.style.display = 'none';
+                folderList.innerHTML = '<li style="padding: 15px; color: var(--text-error);">خطأ في الاتصال بالخادم</li>';
+                console.error('Error loading folders:', error);
+            });
+        }
+
+        function createFolderItem(name, path, isParent) {
+            const li = document.createElement('li');
+            li.className = 'folder-item';
+            li.onclick = () => selectFolder(path, li);
+            
+            li.innerHTML = `
+                <div class="folder-icon">
+                    <i data-feather="${isParent ? 'arrow-up' : 'folder'}"></i>
+                </div>
+                <div class="folder-name">${name}</div>
+            `;
+            
+            // Double click to navigate
+            li.ondblclick = () => {
+                if (isParent || name !== '..') {
+                    navigateToFolder(path);
+                }
+            };
+            
+            return li;
+        }
+
+        function selectFolder(path, element) {
+            // Remove previous selections
+            document.querySelectorAll('.folder-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Select current item
+            element.classList.add('selected');
+            currentBrowserPath = path;
+            document.getElementById('selected-path').textContent = path;
+        }
+
+        function navigateToFolder(path) {
+            currentBrowserPath = path;
+            document.getElementById('current-path').textContent = path;
+            document.getElementById('selected-path').textContent = path;
+            loadFolders(path);
+        }
+
+        function generateMockFolders(path) {
+            // Mock folder structure - replace with actual API call
+            const commonFolders = {
+                '/': [
+                    { name: 'home', path: '/home' },
+                    { name: 'mnt', path: '/mnt' },
+                    { name: 'opt', path: '/opt' },
+                    { name: 'var', path: '/var' },
+                    { name: 'usr', path: '/usr' }
+                ],
+                '/home': [
+                    { name: 'user', path: '/home/user' },
+                    { name: 'shared', path: '/home/shared' }
+                ],
+                '/mnt': [
+                    { name: 'remote', path: '/mnt/remote' },
+                    { name: 'storage', path: '/mnt/storage' }
+                ],
+                '/mnt/remote': [
+                    { name: 'movies', path: '/mnt/remote/movies' },
+                    { name: 'series', path: '/mnt/remote/series' },
+                    { name: 'downloads', path: '/mnt/remote/downloads' }
+                ]
+            };
+            
+            return commonFolders[path] || [];
+        }
+
+        // File browser modal handling - deferred until needed
+        function initFileModal() {
+            const modal = document.getElementById('file-browser-modal');
+            if (modal && !modal.hasEventListener) {
+                modal.onclick = function(e) {
+                    if (e.target === this) {
+                        closeFileBrowser();
+                    }
+                };
+                modal.hasEventListener = true;
+            }
+        }
+
+        // Development Tools Functions - Optimized with loading states
+        window.createSampleTranslationLogs = function() {
+            updateDevelopmentStatus('إنشاء سجلات ترجمة وهمية...');
+            
+            // Disable button during operation
+            const btn = event.target;
+            btn.disabled = true;
+            
+            fetch('/api/create_sample_translation_logs', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateDevelopmentStatus(`تم إنشاء ${data.count} سجل ترجمة وهمي بنجاح`);
+                } else {
+                    updateDevelopmentStatus(`خطأ: ${data.error || 'فشل في إنشاء السجلات'}`);
+                }
+            })
+            .catch(error => {
+                updateDevelopmentStatus(`خطأ في الاتصال: ${error.message}`);
+            })
+            .finally(() => {
+                btn.disabled = false;
+            });
+        };
+
+        window.createSampleMediaFiles = function() {
+            updateDevelopmentStatus('إنشاء ملفات وسائط وهمية...');
+            
+            fetch('/api/create_sample_media_files', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateDevelopmentStatus(`تم إنشاء ${data.count} ملف وسائط وهمي بنجاح`);
+                } else {
+                    updateDevelopmentStatus(`خطأ: ${data.error || 'فشل في إنشاء الملفات'}`);
+                }
+            })
+            .catch(error => {
+                updateDevelopmentStatus(`خطأ في الاتصال: ${error.message}`);
+            });
+        };
+
+        window.createSampleBlacklist = function() {
+            updateDevelopmentStatus('إنشاء قائمة سوداء وهمية...');
+            
+            fetch('/api/create_sample_blacklist', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateDevelopmentStatus(`تم إنشاء ${data.count} عنصر في القائمة السوداء`);
+                } else {
+                    updateDevelopmentStatus(`خطأ: ${data.error || 'فشل في إنشاء القائمة'}`);
+                }
+            })
+            .catch(error => {
+                updateDevelopmentStatus(`خطأ في الاتصال: ${error.message}`);
+            });
+        };
+
+        window.clearSampleMediaFiles = function() {
+            if (!confirm('هل تريد حذف جميع الملفات الوهمية؟')) return;
+            
+            updateDevelopmentStatus('مسح الملفات الوهمية...');
+            
+            fetch('/api/clear_sample_media_files', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateDevelopmentStatus(`تم حذف ${data.count} ملف وهمي`);
+                } else {
+                    updateDevelopmentStatus(`خطأ: ${data.error || 'فشل في حذف الملفات'}`);
+                }
+            })
+            .catch(error => {
+                updateDevelopmentStatus(`خطأ في الاتصال: ${error.message}`);
+            });
+        };
+
+        window.clearSampleBlacklist = function() {
+            if (!confirm('هل تريد حذف جميع عناصر القائمة السوداء الوهمية؟')) return;
+            
+            updateDevelopmentStatus('مسح القائمة السوداء الوهمية...');
+            
+            fetch('/api/clear_sample_blacklist', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateDevelopmentStatus(`تم حذف ${data.count} عنصر من القائمة السوداء`);
+                } else {
+                    updateDevelopmentStatus(`خطأ: ${data.error || 'فشل في حذف القائمة'}`);
+                }
+            })
+            .catch(error => {
+                updateDevelopmentStatus(`خطأ في الاتصال: ${error.message}`);
+            });
+        };
+
+        window.clearSampleTranslationLogs = function() {
+            if (!confirm('هل تريد حذف جميع سجلات الترجمة الوهمية؟')) return;
+            
+            updateDevelopmentStatus('مسح سجلات الترجمة الوهمية...');
+            
+            const btn = event.target;
+            btn.disabled = true;
+            
+            fetch('/api/clear_sample_translation_logs', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateDevelopmentStatus(`تم حذف ${data.count} سجل ترجمة وهمي`);
+                } else {
+                    updateDevelopmentStatus(`خطأ: ${data.error || 'فشل في حذف السجلات'}`);
+                }
+            })
+            .catch(error => {
+                updateDevelopmentStatus(`خطأ في الاتصال: ${error.message}`);
+            })
+            .finally(() => {
+                btn.disabled = false;
+            });
+        };
+
+        window.clearAllSampleData = function() {
+            if (!confirm('هل تريد حذف جميع البيانات الوهمية (ملفات، قوائم سوداء، سجلات)؟\nهذا الإجراء لا يمكن التراجع عنه!')) return;
+            
+            updateDevelopmentStatus('مسح جميع البيانات الوهمية...');
+            
+            const btn = event.target;
+            btn.disabled = true;
+            
+            // Call multiple APIs sequentially
+            Promise.all([
+                fetch('/api/clear_sample_media_files', { method: 'POST', credentials: 'include' }),
+                fetch('/api/clear_sample_blacklist', { method: 'POST', credentials: 'include' }),
+                fetch('/api/clear_sample_translation_logs', { method: 'POST', credentials: 'include' })
+            ])
+            .then(responses => Promise.all(responses.map(r => r.json())))
+            .then(results => {
+                const totalCleared = results.reduce((sum, result) => sum + (result.count || result.deleted_count || 0), 0);
+                updateDevelopmentStatus(`تم حذف ${totalCleared} عنصر من جميع البيانات الوهمية`);
+            })
+            .catch(error => {
+                updateDevelopmentStatus(`خطأ في مسح البيانات: ${error.message}`);
+            })
+            .finally(() => {
+                btn.disabled = false;
+            });
+        };
+
+        function updateDevelopmentStatus(message) {
+            const statusDiv = document.getElementById('development-status');
+            if (statusDiv) {
+                statusDiv.textContent = message;
+                
+                // Auto-clear status after 3 seconds if it's a success message (reduced time)
+                if (message.includes('تم') || message.includes('بنجاح')) {
+                    setTimeout(() => {
+                        if (statusDiv.textContent === message) { // Only clear if message hasn't changed
+                            statusDiv.textContent = 'أدوات التطوير جاهزة للاستخدام';
+                        }
+                    }, 3000);
+                }
+            }
+        }
+
+        // Performance optimization: Cache frequently accessed elements
+        let cachedElements = {};
+        function getCachedElement(id) {
+            if (!cachedElements[id]) {
+                cachedElements[id] = document.getElementById(id);
+            }
+            return cachedElements[id];
+        }
+
+        // Optimize Feather Icons loading - defer until page is fully loaded
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            }, 200);
+        });
+
+    });
+
+
+</script>
+
+<!-- File browser modal is now included from layout.html -->
+{% endblock %}

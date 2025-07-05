@@ -1,0 +1,995 @@
+{% extends "settings/layout.html" %}
+
+{% block title %}{{ t('ai_models_settings') }}{% endblock %}
+
+{% block settings_content %}
+<div class="settings-content">
+    <div class="settings-header">
+        <div class="header-icon">
+            <i data-feather="cpu"></i>
+        </div>
+        <div class="header-content">
+            <h2>{{ t('ai_models_settings') }}</h2>
+            <p>{{ t('ai_models_description') }}</p>
+        </div>
+    </div>
+
+    <!-- Sub-tabs for AI section -->
+    <div class="sub-tabs">
+        <a href="#models" class="sub-tab active" onclick="showAITab('models', this)">
+            <i data-feather="cpu"></i>
+            {{ t('ai_models') }}
+        </a>
+        <a href="#dependencies" class="sub-tab" onclick="showAITab('dependencies', this)">
+            <i data-feather="package"></i>
+            {{ t('dependencies_status') }}
+        </a>
+        <a href="#gpu" class="sub-tab" onclick="showAITab('gpu', this)">
+            <i data-feather="monitor"></i>
+            {{ t('gpu_configuration') }}
+        </a>
+        <a href="#api" class="sub-tab" onclick="showAITab('api', this)">
+            <i data-feather="link"></i>
+            {{ t('api_configuration') }}
+        </a>
+    </div>
+
+    <form method="post" action="{{ url_for('settings_ai', subsection=current_subsection) }}">
+        <!-- Models Tab -->
+        <div id="models" class="tab-content active">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="cpu"></i>
+                    {{ t('ai_models') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('ai_models_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('ai_models_description') }}
+                    </div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- Whisper Model -->
+                    <div class="setting-group">
+                        <label for="whisper_model" class="setting-label">
+                            <i data-feather="mic"></i>
+                            {{ t('whisper_model') }}
+                        </label>
+                        <select id="whisper_model" name="whisper_model" class="setting-select">
+                            <option value="tiny.en" {% if current_settings.get('whisper_model') == 'tiny.en' %}selected{% endif %}>Tiny (39 MB)</option>
+                            <option value="base.en" {% if current_settings.get('whisper_model') == 'base.en' %}selected{% endif %}>Base (74 MB)</option>
+                            <option value="small.en" {% if current_settings.get('whisper_model') == 'small.en' %}selected{% endif %}>Small (244 MB)</option>
+                            <option value="medium.en" {% if current_settings.get('whisper_model') == 'medium.en' %}selected{% endif %}>Medium (769 MB)</option>
+                            <option value="large" {% if current_settings.get('whisper_model') == 'large' %}selected{% endif %}>Large (1550 MB)</option>
+                        </select>
+                        <div class="setting-description">{{ t('whisper_model_description') }}</div>
+                    </div>
+
+                    <!-- Ollama Model -->
+                    <div class="setting-group">
+                        <label for="ollama_model" class="setting-label">
+                            <i data-feather="zap"></i>
+                            {{ t('ollama_model') }}
+                        </label>
+                        <select id="ollama_model" name="ollama_model" class="setting-select">
+                            <option value="llama3" {% if current_settings.get('ollama_model') == 'llama3' %}selected{% endif %}>Llama 3 (4.7GB)</option>
+                            <option value="llama3:70b" {% if current_settings.get('ollama_model') == 'llama3:70b' %}selected{% endif %}>Llama 3 70B (40GB)</option>
+                            <option value="gemma:7b" {% if current_settings.get('ollama_model') == 'gemma:7b' %}selected{% endif %}>Gemma 7B (5.0GB)</option>
+                            <option value="mistral" {% if current_settings.get('ollama_model') == 'mistral' %}selected{% endif %}>Mistral (4.1GB)</option>
+                            <option value="codellama" {% if current_settings.get('ollama_model') == 'codellama' %}selected{% endif %}>Code Llama (3.8GB)</option>
+                        </select>
+                        <div class="setting-description">{{ t('ollama_model_description') }}</div>
+                    </div>
+
+                    <!-- Translation Quality -->
+                    <div class="setting-group">
+                        <label for="translation_quality" class="setting-label">
+                            <i data-feather="award"></i>
+                            {{ t('translation_quality') }}
+                        </label>
+                        <select id="translation_quality" name="translation_quality" class="setting-select">
+                            <option value="fast" {% if current_settings.get('translation_quality') == 'fast' %}selected{% endif %}>{{ t('fast') }}</option>
+                            <option value="balanced" {% if current_settings.get('translation_quality') == 'balanced' %}selected{% endif %}>{{ t('balanced') }}</option>
+                            <option value="high" {% if current_settings.get('translation_quality') == 'high' %}selected{% endif %}>{{ t('high_quality') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('translation_quality_description') }}</div>
+                    </div>
+
+                    <!-- Audio Chunk Size -->
+                    <div class="setting-group">
+                        <label for="audio_chunk_size" class="setting-label">
+                            <i data-feather="music"></i>
+                            {{ t('audio_chunk_size') }}
+                        </label>
+                        <select id="audio_chunk_size" name="audio_chunk_size" class="setting-select">
+                            <option value="30" {% if current_settings.get('audio_chunk_size') == '30' %}selected{% endif %}>30 {{ t('seconds') }}</option>
+                            <option value="60" {% if current_settings.get('audio_chunk_size') == '60' %}selected{% endif %}>1 {{ t('minute') }}</option>
+                            <option value="120" {% if current_settings.get('audio_chunk_size') == '120' %}selected{% endif %}>2 {{ t('minutes') }}</option>
+                            <option value="300" {% if current_settings.get('audio_chunk_size') == '300' %}selected{% endif %}>5 {{ t('minutes') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('audio_chunk_size_description') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dependencies Status Tab -->
+        <div id="dependencies" class="tab-content">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="package"></i>
+                    {{ t('dependencies_status') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('dependencies_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('dependencies_description') }}
+                    </div>
+                </div>
+
+                <!-- Dependencies Status Display -->
+                <div id="dependencies-status-container">
+                    <div class="loading-state">
+                        <i data-feather="loader" class="spin"></i>
+                        {{ t('loading_dependencies') }}
+                    </div>
+                </div>
+
+                <!-- Dependencies Management Tools -->
+                <div class="setting-group">
+                    <h4 class="subsection-title">
+                        <i data-feather="tool"></i>
+                        {{ t('dependencies_management') }}
+                    </h4>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-primary" onclick="refreshDependenciesStatus()">
+                            <i data-feather="refresh-cw"></i>
+                            {{ t('refresh_status') }}
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="installMissingDependencies()">
+                            <i data-feather="download"></i>
+                            {{ t('install_missing') }}
+                        </button>
+                        <button type="button" class="btn btn-warning" onclick="updateAllDependencies()">
+                            <i data-feather="arrow-up"></i>
+                            {{ t('update_all') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="showDependenciesDiagnostics()">
+                            <i data-feather="activity"></i>
+                            {{ t('run_diagnostics') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GPU Tab -->
+        <div id="gpu" class="tab-content">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="monitor"></i>
+                    {{ t('gpu_configuration') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('gpu_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('gpu_description') }}
+                    </div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- Whisper GPU -->
+                    <div class="setting-group">
+                        <label for="whisper_model_gpu" class="setting-label">
+                            <i data-feather="mic"></i>
+                            {{ t('whisper_gpu') }}
+                        </label>
+                        <select id="whisper_model_gpu" name="whisper_model_gpu" class="setting-select">
+                            <option value="auto" {% if current_settings.get('whisper_model_gpu') == 'auto' %}selected{% endif %}>{{ t('auto') }}</option>
+                            <option value="cpu" {% if current_settings.get('whisper_model_gpu') == 'cpu' %}selected{% endif %}>{{ t('cpu_only') }}</option>
+                            <option value="0" {% if current_settings.get('whisper_model_gpu') == '0' %}selected{% endif %}>GPU 0</option>
+                            <option value="1" {% if current_settings.get('whisper_model_gpu') == '1' %}selected{% endif %}>GPU 1</option>
+                        </select>
+                        <div class="setting-description">{{ t('whisper_gpu_description') }}</div>
+                    </div>
+
+                    <!-- Ollama GPU -->
+                    <div class="setting-group">
+                        <label for="ollama_model_gpu" class="setting-label">
+                            <i data-feather="zap"></i>
+                            {{ t('ollama_gpu') }}
+                        </label>
+                        <select id="ollama_model_gpu" name="ollama_model_gpu" class="setting-select">
+                            <option value="auto" {% if current_settings.get('ollama_model_gpu') == 'auto' %}selected{% endif %}>{{ t('auto') }}</option>
+                            <option value="cpu" {% if current_settings.get('ollama_model_gpu') == 'cpu' %}selected{% endif %}>{{ t('cpu_only') }}</option>
+                            <option value="0" {% if current_settings.get('ollama_model_gpu') == '0' %}selected{% endif %}>GPU 0</option>
+                            <option value="1" {% if current_settings.get('ollama_model_gpu') == '1' %}selected{% endif %}>GPU 1</option>
+                        </select>
+                        <div class="setting-description">{{ t('ollama_gpu_description') }}</div>
+                    </div>
+
+                    <!-- GPU Memory Limit -->
+                    <div class="setting-group">
+                        <label for="gpu_memory_limit" class="setting-label">
+                            <i data-feather="hard-drive"></i>
+                            {{ t('gpu_memory_limit') }}
+                        </label>
+                        <select id="gpu_memory_limit" name="gpu_memory_limit" class="setting-select">
+                            <option value="auto" {% if current_settings.get('gpu_memory_limit') == 'auto' %}selected{% endif %}>{{ t('auto') }}</option>
+                            <option value="4096" {% if current_settings.get('gpu_memory_limit') == '4096' %}selected{% endif %}>4 GB</option>
+                            <option value="8192" {% if current_settings.get('gpu_memory_limit') == '8192' %}selected{% endif %}>8 GB</option>
+                            <option value="12288" {% if current_settings.get('gpu_memory_limit') == '12288' %}selected{% endif %}>12 GB</option>
+                            <option value="16384" {% if current_settings.get('gpu_memory_limit') == '16384' %}selected{% endif %}>16 GB</option>
+                        </select>
+                        <div class="setting-description">{{ t('gpu_memory_limit_description') }}</div>
+                    </div>
+
+                    <!-- GPU Temperature Limit -->
+                    <div class="setting-group">
+                        <label for="gpu_temperature_limit" class="setting-label">
+                            <i data-feather="thermometer"></i>
+                            {{ t('gpu_temperature_limit') }}
+                        </label>
+                        <select id="gpu_temperature_limit" name="gpu_temperature_limit" class="setting-select">
+                            <option value="75" {% if current_settings.get('gpu_temperature_limit') == '75' %}selected{% endif %}>75°C</option>
+                            <option value="80" {% if current_settings.get('gpu_temperature_limit') == '80' %}selected{% endif %}>80°C</option>
+                            <option value="85" {% if current_settings.get('gpu_temperature_limit') == '85' %}selected{% endif %}>85°C</option>
+                            <option value="90" {% if current_settings.get('gpu_temperature_limit') == '90' %}selected{% endif %}>90°C</option>
+                        </select>
+                        <div class="setting-description">{{ t('gpu_temperature_limit_description') }}</div>
+                    </div>
+                </div>
+
+                <!-- GPU Management Tools -->
+                <div class="setting-group">
+                    <h4 class="subsection-title">
+                        <i data-feather="tool"></i>
+                        {{ t('gpu_management_tools') }}
+                    </h4>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-outline" onclick="refreshGPUStatus()">
+                            <i data-feather="refresh-cw"></i>
+                            {{ t('refresh_gpu_status') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="optimizeGPUAllocation()">
+                            <i data-feather="zap"></i>
+                            {{ t('optimize_allocation') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="showGPUDiagnostics()">
+                            <i data-feather="activity"></i>
+                            {{ t('gpu_diagnostics') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Tab -->
+        <div id="api" class="tab-content">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="link"></i>
+                    {{ t('api_configuration') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('api_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('api_description') }}
+                    </div>
+                </div>
+
+                <div class="settings-grid two-columns">
+                    <!-- Ollama API URL -->
+                    <div class="setting-group">
+                        <label for="ollama_api_url" class="setting-label">
+                            <i data-feather="server"></i>
+                            {{ t('ollama_api_url') }}
+                        </label>
+                        <input type="url" 
+                               id="ollama_api_url" 
+                               name="ollama_api_url" 
+                               value="{{ current_settings.get('ollama_api_url', 'http://localhost:11434') }}" 
+                               class="setting-input"
+                               placeholder="http://localhost:11434">
+                        <div class="setting-description">{{ t('ollama_api_url_description') }}</div>
+                    </div>
+
+                    <!-- API Timeout -->
+                    <div class="setting-group">
+                        <label for="api_timeout" class="setting-label">
+                            <i data-feather="clock"></i>
+                            {{ t('api_timeout') }}
+                        </label>
+                        <select id="api_timeout" name="api_timeout" class="setting-select">
+                            <option value="30" {% if current_settings.get('api_timeout') == '30' %}selected{% endif %}>30 {{ t('seconds') }}</option>
+                            <option value="60" {% if current_settings.get('api_timeout') == '60' %}selected{% endif %}>1 {{ t('minute') }}</option>
+                            <option value="120" {% if current_settings.get('api_timeout') == '120' %}selected{% endif %}>2 {{ t('minutes') }}</option>
+                            <option value="300" {% if current_settings.get('api_timeout') == '300' %}selected{% endif %}>5 {{ t('minutes') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('api_timeout_description') }}</div>
+                    </div>
+
+                    <!-- Max Retries -->
+                    <div class="setting-group">
+                        <label for="api_max_retries" class="setting-label">
+                            <i data-feather="repeat"></i>
+                            {{ t('api_max_retries') }}
+                        </label>
+                        <select id="api_max_retries" name="api_max_retries" class="setting-select">
+                            <option value="1" {% if current_settings.get('api_max_retries') == '1' %}selected{% endif %}>1</option>
+                            <option value="3" {% if current_settings.get('api_max_retries') == '3' %}selected{% endif %}>3</option>
+                            <option value="5" {% if current_settings.get('api_max_retries') == '5' %}selected{% endif %}>5</option>
+                            <option value="10" {% if current_settings.get('api_max_retries') == '10' %}selected{% endif %}>10</option>
+                        </select>
+                        <div class="setting-description">{{ t('api_max_retries_description') }}</div>
+                    </div>
+
+                    <!-- API Rate Limit -->
+                    <div class="setting-group">
+                        <label for="api_rate_limit" class="setting-label">
+                            <i data-feather="trending-down"></i>
+                            {{ t('api_rate_limit') }}
+                        </label>
+                        <select id="api_rate_limit" name="api_rate_limit" class="setting-select">
+                            <option value="10" {% if current_settings.get('api_rate_limit') == '10' %}selected{% endif %}>10/min</option>
+                            <option value="30" {% if current_settings.get('api_rate_limit') == '30' %}selected{% endif %}>30/min</option>
+                            <option value="60" {% if current_settings.get('api_rate_limit') == '60' %}selected{% endif %}>60/min</option>
+                            <option value="unlimited" {% if current_settings.get('api_rate_limit') == 'unlimited' %}selected{% endif %}>{{ t('unlimited') }}</option>
+                        </select>
+                        <div class="setting-description">{{ t('api_rate_limit_description') }}</div>
+                    </div>
+                </div>
+
+                <!-- API Testing -->
+                <div class="setting-group">
+                    <h4 class="subsection-title">
+                        <i data-feather="check-circle"></i>
+                        {{ t('api_testing') }}
+                    </h4>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-outline" onclick="testOllamaConnection()">
+                            <i data-feather="wifi"></i>
+                            {{ t('test_ollama_connection') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="testWhisperAPI()">
+                            <i data-feather="mic"></i>
+                            {{ t('test_whisper_api') }}
+                        </button>
+                        <button type="button" class="btn btn-outline" onclick="benchmarkModels()">
+                            <i data-feather="bar-chart"></i>
+                            {{ t('benchmark_models') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i data-feather="save"></i>
+                {{ t('save_settings') }}
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+.sub-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0;
+}
+
+.sub-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-radius: 8px 8px 0 0;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    border-bottom: none;
+    position: relative;
+    bottom: -1px;
+}
+
+.sub-tab:hover {
+    color: var(--accent-primary);
+    background: var(--bg-secondary);
+}
+
+.sub-tab.active {
+    color: var(--accent-primary);
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+    border-bottom: 1px solid var(--bg-primary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.settings-grid.two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.btn-outline:hover {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.subsection-title {
+    margin: 24px 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@media (max-width: 768px) {
+    .settings-grid.two-columns {
+        grid-template-columns: 1fr;
+    }
+    
+    .sub-tabs {
+        flex-direction: column;
+    }
+    
+    .sub-tab {
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 8px;
+    }
+    
+    .sub-tab.active {
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+}
+
+/* Dependencies Status Styles */
+.dependencies-grid {
+    display: grid;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.dependencies-summary {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.dependencies-summary h4 {
+    margin: 0 0 16px 0;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.stat-value {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.stat-value.success {
+    color: #28a745;
+}
+
+.stat-value.warning {
+    color: #ffc107;
+}
+
+.stat-value.error {
+    color: #dc3545;
+}
+
+.dependency-category {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.dependency-category h4 {
+    margin: 0 0 16px 0;
+    color: var(--text-primary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.packages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.package-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--bg-primary);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.package-item:hover {
+    border-color: var(--accent-primary);
+    box-shadow: 0 2px 8px rgba(79, 195, 247, 0.1);
+}
+
+.package-item.success {
+    border-left: 4px solid #28a745;
+}
+
+.package-item.error {
+    border-left: 4px solid #dc3545;
+}
+
+.package-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.package-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.required-badge {
+    background: var(--accent-primary);
+    color: white;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.package-version {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0 16px;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.loading-state, .error-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.loading-state i {
+    margin-right: 8px;
+    animation: spin 1s linear infinite;
+}
+
+.error-state {
+    color: #dc3545;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+function showAITab(tabId, element) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.sub-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabId).classList.add('active');
+    
+    // Add active class to clicked tab
+    element.classList.add('active');
+}
+
+// AI API functions
+async function testOllamaConnection() {
+    try {
+        const response = await fetch('/api/test-ollama');
+        const result = await response.json();
+        alert(result.message || 'Test completed');
+    } catch (error) {
+        alert('Connection test failed: ' + error.message);
+    }
+}
+
+async function testWhisperAPI() {
+    try {
+        const response = await fetch('/api/test-whisper');
+        const result = await response.json();
+        alert(result.message || 'Test completed');
+    } catch (error) {
+        alert('Whisper test failed: ' + error.message);
+    }
+}
+
+async function benchmarkModels() {
+    try {
+        const response = await fetch('/api/benchmark-models');
+        const result = await response.json();
+        alert(result.message || 'Benchmark completed');
+    } catch (error) {
+        alert('Benchmark failed: ' + error.message);
+    }
+}
+
+async function refreshGPUStatus() {
+    try {
+        const response = await fetch('/api/gpu-refresh', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const result = await response.json();
+        alert(result.message || 'تم تحديث حالة كروت الشاشة بنجاح');
+    } catch (error) {
+        console.error('GPU refresh error:', error);
+        alert('فشل في تحديث كروت الشاشة: ' + error.message);
+    }
+}
+
+async function optimizeGPUAllocation() {
+    try {
+        const response = await fetch('/api/gpu-optimize', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const result = await response.json();
+        alert(result.message || 'تم تحسين توزيع كروت الشاشة بنجاح');
+    } catch (error) {
+        console.error('GPU optimization error:', error);
+        alert('فشل في تحسين كروت الشاشة: ' + error.message);
+    }
+}
+
+async function showGPUDiagnostics() {
+    try {
+        const response = await fetch('/api/gpu-diagnostics', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const result = await response.json();
+        alert(result.message || 'تم إجراء فحص كروت الشاشة بنجاح');
+    } catch (error) {
+        console.error('GPU diagnostics error:', error);
+        alert('فشل في فحص كروت الشاشة: ' + error.message);
+    }
+}
+
+// Dependencies Management Functions
+async function refreshDependenciesStatus() {
+    const container = document.getElementById('dependencies-status-container');
+    container.innerHTML = '<div class="loading-state"><i data-feather="loader" class="spin"></i> Loading dependencies status...</div>';
+    
+    try {
+        const response = await fetch('/api/dependencies-status');
+        const result = await response.json();
+        
+        if (result.success) {
+            displayDependenciesStatus(result);
+        } else {
+            container.innerHTML = '<div class="error-state">Error loading dependencies: ' + result.error + '</div>';
+        }
+    } catch (error) {
+        container.innerHTML = '<div class="error-state">Failed to load dependencies: ' + error.message + '</div>';
+    }
+}
+
+function displayDependenciesStatus(data) {
+    const container = document.getElementById('dependencies-status-container');
+    let html = '<div class="dependencies-grid">';
+    
+    // Summary
+    html += `
+        <div class="dependencies-summary">
+            <h4>System Summary</h4>
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Total Packages:</span>
+                    <span class="stat-value">${data.summary.total_packages}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Installed:</span>
+                    <span class="stat-value success">${data.summary.installed_count}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">System Ready:</span>
+                    <span class="stat-value ${data.summary.system_ready ? 'success' : 'warning'}">${data.summary.system_ready ? 'Yes' : 'No'}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Categories
+    for (const [category, packages] of Object.entries(data.dependencies)) {
+        html += `
+            <div class="dependency-category">
+                <h4>${getCategoryTitle(category)}</h4>
+                <div class="packages-list">
+        `;
+        
+        for (const [packageName, info] of Object.entries(packages)) {
+            const statusClass = info.status === 'installed' ? 'success' : 'error';
+            const statusIcon = info.status === 'installed' ? 'check-circle' : 'x-circle';
+            
+            html += `
+                <div class="package-item ${statusClass}">
+                    <div class="package-info">
+                        <i data-feather="${statusIcon}"></i>
+                        <span class="package-name">${packageName}</span>
+                        ${info.required ? '<span class="required-badge">Required</span>' : ''}
+                    </div>
+                    <div class="package-version">
+                        ${info.version || 'Not installed'}
+                    </div>
+                    ${info.status !== 'installed' ? `
+                        <button class="btn btn-sm btn-primary" onclick="installPackage('${packageName}')">
+                            Install
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        html += '</div></div>';
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
+    
+    // Re-initialize feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+function getCategoryTitle(category) {
+    const titles = {
+        'ai_models': 'AI Libraries',
+        'media_processing': 'Media Processing',
+        'system_utilities': 'System Utilities',
+        'web_framework': 'Web Framework',
+        'gpu_drivers': 'GPU Drivers & CUDA',
+        'ai_models_files': 'AI Models & Files'
+    };
+    return titles[category] || category;
+}
+
+async function installMissingDependencies() {
+    // Get current status first
+    try {
+        const statusResponse = await fetch('/api/dependencies-status');
+        const statusResult = await statusResponse.json();
+        
+        if (!statusResult.success) {
+            alert('Error getting dependencies status');
+            return;
+        }
+        
+        const missingPackages = [];
+        for (const [category, packages] of Object.entries(statusResult.dependencies)) {
+            for (const [packageName, info] of Object.entries(packages)) {
+                if (info.status !== 'installed' && info.required) {
+                    missingPackages.push(packageName);
+                }
+            }
+        }
+        
+        if (missingPackages.length === 0) {
+            alert('No missing required packages found');
+            return;
+        }
+        
+        if (confirm(`Install ${missingPackages.length} missing packages: ${missingPackages.join(', ')}?`)) {
+            for (const packageName of missingPackages) {
+                await installPackage(packageName);
+            }
+            // Refresh status after installation
+            await refreshDependenciesStatus();
+        }
+    } catch (error) {
+        alert('Failed to install missing dependencies: ' + error.message);
+    }
+}
+
+async function installPackage(packageName, packageType = 'python') {
+    try {
+        const response = await fetch('/api/install-dependency', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                package: packageName,
+                type: packageType 
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`Package ${packageName} installed successfully: ${result.message}`);
+            // Refresh dependencies after installation
+            await refreshDependenciesStatus();
+        } else {
+            alert(`Failed to install ${packageName}: ${result.error}`);
+        }
+    } catch (error) {
+        alert(`Installation failed for ${packageName}: ${error.message}`);
+    }
+}
+
+async function updateAllDependencies() {
+    if (confirm('Update all installed packages? This may take several minutes.')) {
+        alert('Update process started. This will take a few minutes...');
+        // Implementation would require more complex backend support
+        alert('Update feature coming soon!');
+    }
+}
+
+async function showDependenciesDiagnostics() {
+    try {
+        const response = await fetch('/api/dependencies-diagnostics', {
+            method: 'POST'
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            const diagnostics = result.diagnostics;
+            let message = 'System Diagnostics:\n\n';
+            message += `Python Version: ${diagnostics.python_version}\n`;
+            message += `Pip Version: ${diagnostics.pip_version || 'Unknown'}\n\n`;
+            
+            if (diagnostics.recommendations.length > 0) {
+                message += 'Recommendations:\n';
+                diagnostics.recommendations.forEach(rec => {
+                    message += `• ${rec.message}\n`;
+                });
+            }
+            
+            alert(message);
+        } else {
+            alert('Diagnostics failed: ' + result.error);
+        }
+    } catch (error) {
+        alert('Diagnostics failed: ' + error.message);
+    }
+}
+
+// Load dependencies status when tab is shown
+document.addEventListener('DOMContentLoaded', function() {
+    // Load dependencies on page load if tab is active
+    if (document.getElementById('dependencies').classList.contains('active')) {
+        refreshDependenciesStatus();
+    }
+});
+
+// Refresh dependencies when tab is clicked
+function showAITab(tabId, element) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.sub-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabId).classList.add('active');
+    
+    // Add active class to clicked tab
+    element.classList.add('active');
+    
+    // Load dependencies data when dependencies tab is shown
+    if (tabId === 'dependencies') {
+        refreshDependenciesStatus();
+    }
+}
+
+// Initialize session system
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize session on page load
+    if (typeof initializeSession === 'function') {
+        initializeSession();
+    }
+});
+</script>
+
+<!-- Session Management for API Authentication -->
+<script src="{{ url_for('static', filename='js/session-fix.js') }}"></script>
+<script src="{{ url_for('static', filename='js/gpu-management.js') }}"></script>
+{% endblock %}

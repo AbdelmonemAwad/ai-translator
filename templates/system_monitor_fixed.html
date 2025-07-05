@@ -1,0 +1,254 @@
+{% extends "layout.html" %}
+{% block title %}مراقبة النظام - الترجمان الآلي{% endblock %}
+
+{% block head_extra %}
+<style>
+    .monitor-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    .stat-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+        padding: 2rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+    .stat-card h3 {
+        margin-top: 0;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+    .gauge-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        height: 150px;
+    }
+    .gauge-circle {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: conic-gradient(#4fc3f7 0deg, rgba(255,255,255,0.1) 0deg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(79,195,247,0.3);
+    }
+    .gauge-inner-circle {
+        width: 120px;
+        height: 120px;
+        background-color: var(--bg-primary);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+    }
+    .gauge-percentage {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--text-primary);
+    }
+    .gauge-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 0.25rem;
+    }
+    .system-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .info-item {
+        padding: 0.5rem;
+        background: var(--bg-secondary);
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+    .info-item strong {
+        color: var(--accent-primary);
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    <h1>{{ t('system_monitor') }}</h1>
+    
+    <div id="stats-grid" class="monitor-grid">
+        <!-- CPU Card -->
+        <div class="stat-card">
+            <h3><i data-feather="cpu"></i> معالج النظام</h3>
+            <div class="gauge-container">
+                <div class="gauge-circle" id="gauge-cpu">
+                    <div class="gauge-inner-circle">
+                        <div class="gauge-percentage" id="cpu-percent">--</div>
+                        <div class="gauge-label">استخدام</div>
+                    </div>
+                </div>
+            </div>
+            <div class="system-info">
+                <div class="info-item">
+                    <strong>الاسم:</strong>
+                    <span id="cpu-name">Loading...</span>
+                </div>
+                <div class="info-item">
+                    <strong>الأنوية:</strong>
+                    <span id="cpu-cores">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- RAM Card -->
+        <div class="stat-card">
+            <h3><i data-feather="zap"></i> الذاكرة العشوائية</h3>
+            <div class="gauge-container">
+                <div class="gauge-circle" id="gauge-ram">
+                    <div class="gauge-inner-circle">
+                        <div class="gauge-percentage" id="ram-percent">--</div>
+                        <div class="gauge-label" id="ram-label">-- GB</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disk Card -->
+        <div class="stat-card" id="disk-card">
+            <h3><i data-feather="hard-drive"></i> التخزين</h3>
+            <div id="disk-info">Loading...</div>
+        </div>
+
+        <!-- System Info Card -->
+        <div class="stat-card">
+            <h3><i data-feather="server"></i> معلومات النظام</h3>
+            <div class="system-info">
+                <div class="info-item">
+                    <strong>النظام:</strong>
+                    <span id="system-os">Loading...</span>
+                </div>
+                <div class="info-item">
+                    <strong>المضيف:</strong>
+                    <span id="system-hostname">Loading...</span>
+                </div>
+                <div class="info-item">
+                    <strong>وقت التشغيل:</strong>
+                    <span id="system-uptime">Loading...</span>
+                </div>
+                <div class="info-item">
+                    <strong>المعمارية:</strong>
+                    <span id="system-arch">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let updateInterval;
+    
+    // Update gauge visual
+    function updateGauge(id, percentage, text) {
+        const gauge = document.getElementById(`gauge-${id}`);
+        const percentElement = document.getElementById(`${id}-percent`);
+        
+        if (gauge && percentElement) {
+            const angle = (percentage / 100) * 360;
+            gauge.style.background = `conic-gradient(#4fc3f7 ${angle}deg, rgba(255,255,255,0.1) ${angle}deg)`;
+            percentElement.textContent = text;
+        }
+    }
+    
+    // Load and update system data
+    async function updateSystemData() {
+        try {
+            const response = await fetch('/api/system-monitor');
+            const data = await response.json();
+            
+            if (data.error) {
+                console.error('System monitor error:', data.error);
+                return;
+            }
+            
+            // Update CPU
+            const cpuPercent = data.cpu_percent || data.cpu?.usage_percent || 0;
+            updateGauge('cpu', cpuPercent, `${cpuPercent}%`);
+            
+            const cpuName = data.cpu?.name || 'Unknown CPU';
+            const cpuCores = data.cpu?.cores || 1;
+            const cpuThreads = data.cpu?.threads || 1;
+            document.getElementById('cpu-name').textContent = cpuName;
+            document.getElementById('cpu-cores').textContent = `${cpuCores} أنوية / ${cpuThreads} خيط`;
+            
+            // Update RAM
+            const ramPercent = data.ram_percent || data.memory?.usage_percent || 0;
+            const ramUsed = data.ram_used_gb || data.memory?.used_gb || 0;
+            const ramTotal = data.ram_total_gb || data.memory?.total_gb || 0;
+            
+            updateGauge('ram', ramPercent, `${ramPercent}%`);
+            document.getElementById('ram-label').textContent = `${ramUsed}/${ramTotal} GB`;
+            
+            // Update Disk
+            const diskInfo = document.getElementById('disk-info');
+            if (data.disk && Object.keys(data.disk).length > 0) {
+                let diskHtml = '';
+                for (const path in data.disk) {
+                    if (!data.disk[path].error) {
+                        const disk = data.disk[path];
+                        diskHtml += `
+                            <div class="info-item">
+                                <strong>${path}:</strong>
+                                ${disk.used}/${disk.total} GB (${disk.percent}%)
+                            </div>
+                        `;
+                    }
+                }
+                diskInfo.innerHTML = diskHtml || '<div class="info-item">لا توجد بيانات تخزين</div>';
+            } else {
+                diskInfo.innerHTML = '<div class="info-item">لا توجد بيانات تخزين</div>';
+            }
+            
+            // Update System Info
+            if (data.system) {
+                document.getElementById('system-os').textContent = data.system.os_name || 'Unknown';
+                document.getElementById('system-hostname').textContent = data.system.hostname || 'Unknown';
+                document.getElementById('system-uptime').textContent = data.system.uptime || 'Unknown';
+                document.getElementById('system-arch').textContent = data.system.architecture || 'Unknown';
+            }
+            
+        } catch (error) {
+            console.error('Failed to fetch system data:', error);
+            document.getElementById('stats-grid').innerHTML = 
+                '<div class="stat-card"><h3>خطأ</h3><p>فشل في تحميل بيانات النظام</p></div>';
+        }
+    }
+    
+    // Initialize
+    feather.replace();
+    updateSystemData();
+    updateInterval = setInterval(updateSystemData, 5000);
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        if (updateInterval) {
+            clearInterval(updateInterval);
+        }
+    });
+});
+</script>
+{% endblock %}

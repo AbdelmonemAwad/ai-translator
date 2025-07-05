@@ -1,0 +1,17 @@
+AI Translator v2.2.5 - Remote Storage Fix Package
+Created: 2025-07-05 00:16:14
+
+This package includes:
+✓ Remote storage button fixes (Test Connection, Setup Mount, Check Status)
+✓ Enhanced error handling for remote storage APIs
+✓ Improved JavaScript functions with proper data handling
+✓ Database schema consistency fixes
+✓ Complete authentication system with admin/your_strong_password
+
+Installation:
+1. Extract this package to your server
+2. Run: chmod +x install_ubuntu_server_v2.2.5_final.sh
+3. Run: sudo ./install_ubuntu_server_v2.2.5_final.sh
+4. Access at: http://your-server-ip
+
+Files included: 66

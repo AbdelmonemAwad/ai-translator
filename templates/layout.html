@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="{{ get_user_language() }}" dir="{{ 'rtl' if get_user_language() == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌐%3C/text%3E%3C/svg%3E">
+    <title>{% block title %}{{ t('app_title') }}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/file-browser.css') }}">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="{{ url_for('static', filename='js/components.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/file-browser.js') }}"></script>
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <div class="main-container">
+        {% include 'components/mobile_header.html' %}
+        
+        {% include 'components/sidebar.html' %}
+        
+        <main class="content-area">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div id="flash-container">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            {% block content %}{% endblock %}
+            
+            {% include 'components/footer.html' %}
+        </main>
+    </div>
+    
+    <!-- Legacy JavaScript - will be moved to components.js -->
+    <script> 
+        feather.replace(); 
+        
+        // Initialize notification counter for legacy compatibility
+        function initializeNotificationCounter() {
+            updateNotificationCounter();
+            setInterval(updateNotificationCounter, 30000);
+        }
+        
+        async function updateNotificationCounter() {
+            {% if session.get('authenticated') %}
+            try {
+                const response = await fetch('/api/notifications/count');
+                const data = await response.json();
+                const badge = document.getElementById('notification-count');
+                
+                if (!badge) return;
+                
+                if (data.error) {
+                    badge.style.display = 'none';
+                    return;
+                }
+                
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'inline';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Failed to update notification counter:', error);
+                const badge = document.getElementById('notification-count');
+                if (badge) badge.style.display = 'none';
+            }
+            {% else %}
+            const badge = document.getElementById('notification-count');
+            if (badge) badge.style.display = 'none';
+            {% endif %}
+        }
+        
+        // Initialize legacy functions
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeNotificationCounter();
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

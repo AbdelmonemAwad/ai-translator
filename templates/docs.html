@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="{{ get_user_language() }}" dir="{{ 'rtl' if get_user_language() == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('documentation') }} - {{ t('app_title') }}</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --success: #059669;
+            --warning: #d97706;
+            --error: #dc2626;
+            --background: #ffffff;
+            --surface: #f8fafc;
+            --surface-elevated: #ffffff;
+            --border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        [data-theme="dark"] {
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-elevated: #334155;
+            --border: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: {{ 'Tajawal, sans-serif' if get_user_language() == 'ar' else 'Inter, sans-serif' }};
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header */
+        .header {
+            background: var(--surface-elevated);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            opacity: 0.8;
+            font-size: 0.875rem;
+        }
+
+        /* Content Sections */
+        .section {
+            padding: 4rem 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--surface-elevated);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            width: 3rem;
+            height: 3rem;
+            background: var(--primary);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+        }
+
+        /* Tech Stack */
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tech-item {
+            background: var(--surface-elevated);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .tech-logo {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tech-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .tech-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Screenshots Slideshow */
+        .screenshots-slideshow {
+            position: relative;
+            max-width: 900px;
+            margin: 3rem auto;
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .slideshow-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 75%;
+            object-fit: contain;
+            background: var(--surface);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .mock-dashboard {
+            background: #1e1e2e;
+            border-radius: 8px 8px 0 0;
+            padding: 20px;
+            height: 75%;
+            color: white;
+        }
+
+        .mock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2d2d42;
+        }
+
+        .mock-header h3 {
+            color: #f8f9fa;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .version {
+            color: #8b89cc;
+            font-size: 14px;
+        }
+
+        .mock-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            flex: 1;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card.blue { background: #42a5f2; }
+        .stat-card.green { background: #10b981; }
+        .stat-card.orange { background: #f59e06; }
+
+        .stat-label {
+            font-size: 14px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .mock-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .mock-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .mock-btn.primary { background: #8b89cc; }
+        .mock-btn.secondary { background: #42a5f2; }
+
+        .mock-settings {
+            background: #1e1e2e;
+            border-radius: 8px 8px 0 0;
+            padding: 20px;
+            height: 75%;
+            color: white;
+        }
+
+        .settings-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #2d2d42;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border-radius: 8px 8px 0 0;
+            background: #2d2d42;
+            color: #94a3b8;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background: #8b89cc;
+            color: white;
+        }
+
+        .settings-fields {
+            margin-bottom: 30px;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #4a4563;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+
+        .setting-row label {
+            color: white;
+            font-size: 14px;
+        }
+
+        .setting-row select {
+            background: #8b89cc;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .mock-files, .mock-logs {
+            background: #1e1e2e;
+            border-radius: 8px 8px 0 0;
+            padding: 20px;
+            height: 75%;
+            color: white;
+        }
+
+        .files-grid {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .file-card {
+            flex: 1;
+            background: #4a4563;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .file-name {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .file-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .file-status.translated { background: #10b981; color: white; }
+        .file-status.pending { background: #f59e06; color: white; }
+        .file-status.failed { background: #f93174; color: white; }
+
+        .file-path {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            background: #4a4563;
+            border: none;
+            border-radius: 8px;
+            color: #8b89cc;
+            font-size: 14px;
+        }
+
+        .logs-container {
+            margin-bottom: 20px;
+        }
+
+        .log-entry {
+            background: #4a4563;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .log-entry.warning { background: #2d2d42; }
+
+        .log-level {
+            font-weight: bold;
+            font-size: 12px;
+            min-width: 60px;
+        }
+
+        .log-entry.info .log-level { color: #10b981; }
+        .log-entry.warning .log-level { color: #f59e06; }
+        .log-entry.error .log-level { color: #ef4444; }
+        .log-entry.success .log-level { color: #10b981; }
+
+        .log-time {
+            color: #94a3b8;
+            font-size: 12px;
+            min-width: 120px;
+        }
+
+        .log-message {
+            color: white;
+            font-size: 12px;
+        }
+
+        .logs-footer {
+            color: #8b89cc;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* Coming Soon Section Styles */
+        .os-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .os-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 25px;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .os-card.featured {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, var(--surface) 0%, rgba(139, 137, 204, 0.1) 100%);
+        }
+
+        .os-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .os-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .os-icon.casa-os { background: linear-gradient(45deg, #42a5f2, #1e40af); }
+        .os-icon.zima-os { background: linear-gradient(45deg, #10b981, #059669); }
+        .os-icon.fedora { background: linear-gradient(45deg, #3b82f6, #1d4ed8); }
+        .os-icon.arch { background: linear-gradient(45deg, #1e40af, #3730a3); }
+        .os-icon.opensuse { background: linear-gradient(45deg, #16a34a, #15803d); }
+        .os-icon.centos { background: linear-gradient(45deg, #dc2626, #b91c1c); }
+
+        .os-icon.casa-os::after { content: "🏠"; }
+        .os-icon.zima-os::after { content: "⚡"; }
+        .os-icon.fedora::after { content: "🎩"; }
+        .os-icon.arch::after { content: "🏹"; }
+        .os-icon.opensuse::after { content: "🦎"; }
+        .os-icon.centos::after { content: "🗻"; }
+
+        .os-content h3 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .os-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .os-status.coming-soon {
+            background: linear-gradient(45deg, #f59e06, #d97706);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .os-status.planned {
+            background: var(--border);
+            color: var(--text-secondary);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .os-content p {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .os-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .os-features li {
+            color: var(--text-secondary);
+            padding: 5px 0;
+            border-left: 3px solid var(--primary);
+            padding-left: 15px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .roadmap-info {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 30px;
+            border: 2px solid var(--border);
+        }
+
+        .roadmap-info h3 {
+            color: var(--text-primary);
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .roadmap-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            background: rgba(139, 137, 204, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .timeline-date {
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .timeline-content {
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .timeline-content strong {
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .os-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+        }
+
+        /* Footer Platform Links */
+        .coming-soon-link {
+            position: relative;
+            color: #f59e06 !important;
+        }
+
+        .coming-soon-link::after {
+            content: "🚀";
+            margin-left: 5px;
+            animation: pulse 2s infinite;
+        }
+
+        .planned-link {
+            color: #6b7280 !important;
+            opacity: 0.7;
+        }
+
+        .planned-link::after {
+            content: "⏳";
+            margin-left: 5px;
+        }
+
+        .slide-content {
+            padding: 1.5rem;
+            background: var(--card-bg);
+            text-align: center;
+            height: 25%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide-content h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .slide-content p {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Navigation Controls */
+        .slideshow-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: background 0.3s ease;
+            z-index: 10;
+        }
+
+        .slideshow-nav:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .nav-prev {
+            left: 20px;
+        }
+
+        .nav-next {
+            right: 20px;
+        }
+
+        /* Slide Indicators */
+        .slideshow-indicators {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .indicator.active {
+            background: var(--primary);
+        }
+
+        /* Play/Pause Control */
+        .slideshow-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        .play-pause-btn {
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+        }
+
+        .play-pause-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        /* Progress Bar */
+        .slideshow-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: var(--primary);
+            transition: width 0.1s ease;
+            z-index: 10;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .screenshots-slideshow {
+                margin: 2rem 1rem;
+            }
+            
+            .slideshow-container {
+                height: 400px;
+            }
+            
+            .slideshow-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            
+            .nav-prev {
+                left: 10px;
+            }
+            
+            .nav-next {
+                right: 10px;
+            }
+        }
+
+        /* Installation Steps */
+        .installation-steps {
+            margin-top: 2rem;
+        }
+
+        .step {
+            background: var(--surface-elevated);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .step-header {
+            padding: 1.5rem;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .step-number {
+            width: 2rem;
+            height: 2rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .step-title {
+            font-weight: 600;
+        }
+
+        .step-content {
+            padding: 1.5rem;
+        }
+
+        .code-block {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        /* Version History */
+        .version-item {
+            background: var(--surface-elevated);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .version-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .version-number {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .version-date {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .version-changes {
+            list-style: none;
+        }
+
+        .version-changes li {
+            padding: 0.25rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .version-changes li:before {
+            content: "✓";
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        /* Services Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .service-category {
+            background: var(--surface-elevated);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .category-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .service-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .service-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .service-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .service-icon {
+            font-size: 1.5rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            border-radius: 0.5rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .service-info h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .service-info p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h3 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section p, .footer-section a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo">
+                    <i data-feather="cpu"></i>
+                    {{ t('app_title') }}
+                </a>
+                <nav class="nav-links">
+                    <a href="#features" class="nav-link">{{ t('features') }}</a>
+                    <a href="#screenshots" class="nav-link">{{ t('screenshots') }}</a>
+                    <a href="#installation" class="nav-link">{{ t('installation') }}</a>
+                    <a href="#versions" class="nav-link">{{ t('versions') }}</a>
+                    <a href="{{ url_for('dashboard') }}" class="btn-primary">{{ t('dashboard') }}</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>{{ t('app_title') }}</h1>
+            <p>{{ t('app_description_detailed') }}</p>
+            
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">AI</span>
+                    <span class="stat-label">{{ t('powered_translation') }}</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">{{ t('automated_processing') }}</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">99%</span>
+                    <span class="stat-label">{{ t('accuracy_rate') }}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">{{ t('features') }}</h2>
+                <p class="section-subtitle">{{ t('features_description') }}</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="mic"></i>
+                    </div>
+                    <h3 class="feature-title">{{ t('whisper_integration') }}</h3>
+                    <p class="feature-description">{{ t('whisper_description') }}</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="cpu"></i>
+                    </div>
+                    <h3 class="feature-title">{{ t('ollama_ai_models') }}</h3>
+                    <p class="feature-description">{{ t('ollama_description') }}</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="monitor"></i>
+                    </div>
+                    <h3 class="feature-title">{{ t('real_time_monitoring') }}</h3>
+                    <p class="feature-description">{{ t('monitoring_description') }}</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="file-text"></i>
+                    </div>
+                    <h3 class="feature-title">{{ t('subtitle_generation') }}</h3>
+                    <p class="feature-description">{{ t('subtitle_description') }}</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="globe"></i>
+                    </div>
+                    <h3 class="feature-title">{{ t('web_interface') }}</h3>
+                    <p class="feature-description">{{ t('web_interface_description') }}</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-feather="database"></i>
+                    </div>
+                    <h3 class="feature-title">{{ t('database_management') }}</h3>
+                    <p class="feature-description">{{ t('database_description') }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section class="section" style="background: var(--surface);">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">{{ t('technology_stack') }}</h2>
+                <p class="section-subtitle">{{ t('tech_stack_description') }}</p>
+            </div>
+            
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <div class="tech-logo">🐍</div>
+                    <div class="tech-name">Python 3.9+</div>
+                    <div class="tech-description">{{ t('backend_language') }}</div>
+                </div>
+                
+                <div class="tech-item">
+                    <div class="tech-logo">🌐</div>
+                    <div class="tech-name">Flask</div>
+                    <div class="tech-description">{{ t('web_framework') }}</div>
+                </div>
+                
+                <div class="tech-item">
+                    <div class="tech-logo">🗃️</div>
+                    <div class="tech-name">PostgreSQL</div>
+                    <div class="tech-description">{{ t('database_system') }}</div>
+                </div>
+                
+                <div class="tech-item">
+                    <div class="tech-logo">🤖</div>
+                    <div class="tech-name">Whisper AI</div>
+                    <div class="tech-description">{{ t('speech_recognition') }}</div>
+                </div>
+                
+                <div class="tech-item">
+                    <div class="tech-logo">🧠</div>
+                    <div class="tech-name">Ollama</div>
+                    <div class="tech-description">{{ t('ai_translation') }}</div>
+                </div>
+                
+                <div class="tech-item">
+                    <div class="tech-logo">🎬</div>
+                    <div class="tech-name">FFmpeg</div>
+                    <div class="tech-description">{{ t('media_processing') }}</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Supported Services Section -->
+    <section id="services" class="section" style="background: var(--surface);">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">{{ t('supported_services') }}</h2>
+                <p class="section-subtitle">{{ t('supported_services_description') }}</p>
+            </div>
+            
+            <div class="services-grid">
+                <div class="service-category">
+                    <h3 class="category-title">{{ t('media_servers') }}</h3>
+                    <div class="service-list">
+                        <div class="service-item">
+                            <div class="service-icon">📺</div>
+                            <div class="service-info">
+                                <h4>Plex Media Server</h4>
+                                <p>{{ t('plex_description') }}</p>
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-icon">🎭</div>
+                            <div class="service-info">
+                                <h4>Jellyfin</h4>
+                                <p>{{ t('jellyfin_description') }}</p>
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-icon">🎪</div>
+                            <div class="service-info">
+                                <h4>Emby</h4>
+                                <p>{{ t('emby_description') }}</p>
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-icon">🏠</div>
+                            <div class="service-info">
+                                <h4>Kodi</h4>
+                                <p>{{ t('kodi_description') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="service-category">
+                    <h3 class="category-title">{{ t('content_managers') }}</h3>
+                    <div class="service-list">
+                        <div class="service-item">
+                            <div class="service-icon">🎬</div>
+                            <div class="service-info">
+                                <h4>Radarr</h4>
+                                <p>{{ t('radarr_description') }}</p>
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-icon">📺</div>
+                            <div class="service-info">
+                                <h4>Sonarr</h4>
+                                <p>{{ t('sonarr_description') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section id="screenshots" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">{{ t('screenshots') }}</h2>
+                <p class="section-subtitle">{{ t('screenshots_description') }}</p>
+            </div>
+            
+            <div class="screenshots-slideshow">
+                <div class="slideshow-container">
+                    <!-- Slides -->
+                    <div class="slide active">
+                        <div class="mock-dashboard">
+                            <div class="mock-header">
+                                <h3>AI Translator Dashboard</h3>
+                                <span class="version">v2.2.1</span>
+                            </div>
+                            <div class="mock-stats">
+                                <div class="stat-card blue">
+                                    <div class="stat-label">Total Files</div>
+                                    <div class="stat-number">123</div>
+                                </div>
+                                <div class="stat-card green">
+                                    <div class="stat-label">Translated</div>
+                                    <div class="stat-number">47</div>
+                                </div>
+                                <div class="stat-card orange">
+                                    <div class="stat-label">Pending</div>
+                                    <div class="stat-number">12</div>
+                                </div>
+                            </div>
+                            <div class="mock-buttons">
+                                <button class="mock-btn primary">Start Translation</button>
+                                <button class="mock-btn secondary">Sync Library</button>
+                            </div>
+                        </div>
+                        <div class="slide-content">
+                            <h4>{{ t('dashboard') }}</h4>
+                            <p>{{ t('main_control_panel') }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="slide">
+                        <div class="mock-files">
+                            <div class="mock-header">
+                                <h3>File Management</h3>
+                                <span class="version">Media Library</span>
+                            </div>
+                            <div class="files-grid">
+                                <div class="file-card">
+                                    <div class="file-name">Action Movie</div>
+                                    <div class="file-status translated">Translated</div>
+                                    <div class="file-path">action.mp4</div>
+                                </div>
+                                <div class="file-card">
+                                    <div class="file-name">TV Show</div>
+                                    <div class="file-status pending">Pending</div>
+                                    <div class="file-path">show.mkv</div>
+                                </div>
+                                <div class="file-card">
+                                    <div class="file-name">Documentary</div>
+                                    <div class="file-status failed">Failed</div>
+                                    <div class="file-path">doc.avi</div>
+                                </div>
+                            </div>
+                            <div class="search-bar">
+                                <input type="text" value="Search: action movies" readonly>
+                            </div>
+                        </div>
+                        <div class="slide-content">
+                            <h4>{{ t('file_management') }}</h4>
+                            <p>{{ t('media_listing_with_filters') }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="slide">
+                        <div class="mock-settings">
+                            <div class="mock-header">
+                                <h3>Settings</h3>
+                                <span class="version">Configuration</span>
+                            </div>
+                            <div class="settings-tabs">
+                                <div class="tab active">General</div>
+                                <div class="tab">AI Services</div>
+                                <div class="tab">Media Servers</div>
+                                <div class="tab">System</div>
+                            </div>
+                            <div class="settings-fields">
+                                <div class="setting-row">
+                                    <label>Language:</label>
+                                    <select><option>English</option></select>
+                                </div>
+                                <div class="setting-row">
+                                    <label>Theme:</label>
+                                    <select><option>Dark</option></select>
+                                </div>
+                                <div class="setting-row">
+                                    <label>Whisper Model:</label>
+                                    <select><option>medium.en</option></select>
+                                </div>
+                            </div>
+                            <div class="mock-buttons">
+                                <button class="mock-btn primary">Save Settings</button>
+                            </div>
+                        </div>
+                        <div class="slide-content">
+                            <h4>{{ t('settings') }}</h4>
+                            <p>{{ t('comprehensive_configuration') }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="slide">
+                        <div class="mock-logs">
+                            <div class="mock-header">
+                                <h3>System Logs</h3>
+                                <span class="version">Monitoring</span>
+                            </div>
+                            <div class="logs-container">
+                                <div class="log-entry info">
+                                    <span class="log-level">[INFO]</span>
+                                    <span class="log-time">2025-06-29 14:52</span>
+                                    <span class="log-message">Started translation for action.mp4</span>
+                                </div>
+                                <div class="log-entry warning">
+                                    <span class="log-level">[WARN]</span>
+                                    <span class="log-time">2025-06-29 13:48</span>
+                                    <span class="log-message">Could not connect to Ollama API</span>
+                                </div>
+                                <div class="log-entry error">
+                                    <span class="log-level">[ERROR]</span>
+                                    <span class="log-time">2025-06-29 13:45</span>
+                                    <span class="log-message">Failed to process audio file</span>
+                                </div>
+                                <div class="log-entry success">
+                                    <span class="log-level">[SUCCESS]</span>
+                                    <span class="log-time">2025-06-29 13:42</span>
+                                    <span class="log-message">Translation completed successfully</span>
+                                </div>
+                            </div>
+                            <div class="logs-footer">
+                                <span>Showing 135 log entries</span>
+                            </div>
+                        </div>
+                        <div class="slide-content">
+                            <h4>{{ t('system_logs') }}</h4>
+                            <p>{{ t('real_time_monitoring') }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation Controls -->
+                    <button class="slideshow-nav nav-prev" onclick="prevSlide()">❮</button>
+                    <button class="slideshow-nav nav-next" onclick="nextSlide()">❯</button>
+                    
+                    <!-- Play/Pause Control -->
+                    <div class="slideshow-controls">
+                        <button class="play-pause-btn" onclick="togglePlayPause()" id="playPauseBtn">⏸</button>
+                    </div>
+                    
+                    <!-- Slide Indicators -->
+                    <div class="slideshow-indicators">
+                        <div class="indicator active" onclick="currentSlide(1)"></div>
+                        <div class="indicator" onclick="currentSlide(2)"></div>
+                        <div class="indicator" onclick="currentSlide(3)"></div>
+                        <div class="indicator" onclick="currentSlide(4)"></div>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="slideshow-progress" id="progressBar"></div>
+                </div>
+            </div>    </section>
+
+    <!-- Installation Section -->
+    <section id="installation" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">{{ t('installation') }}</h2>
+                <p class="section-subtitle">{{ t('installation_description') }}</p>
+            </div>
+            
+            <div class="installation-steps">
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div class="step-title">{{ t('system_requirements') }}</div>
+                    </div>
+                    <div class="step-content">
+                        <ul>
+                            <li>Ubuntu Server 22.04+</li>
+                            <li>{{ t('minimum_4gb_ram') }}</li>
+                            <li>{{ t('minimum_20gb_storage') }}</li>
+                            <li>{{ t('nvidia_gpu_required') }}</li>
+                            <li>{{ t('internet_connection') }}</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div class="step-title">{{ t('download_installer') }}</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="code-block">
+wget https://raw.githubusercontent.com/AbdelmonemAwad/ai-translator/main/install.sh
+chmod +x install.sh
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <div class="step-title">{{ t('run_installation') }}</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="code-block">
+sudo ./install.sh
+                        </div>
+                        <p>{{ t('installation_time_note') }}</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">4</div>
+                        <div class="step-title">{{ t('access_application') }}</div>
+                    </div>
+                    <div class="step-content">
+                        <p>{{ t('access_via_browser') }}</p>
+                        <div class="code-block">
+http://your-server-ip
+# Application runs on port 5000 (Nginx proxies to port 80)
+# Default credentials:
+Username: admin
+Password: your_strong_password
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Version History -->
+    <section id="versions" class="section" style="background: var(--surface);">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">{{ t('version_history') }}</h2>
+                <p class="section-subtitle">{{ t('version_history_description') }}</p>
+            </div>
+            
+            <div class="version-item">
+                <div class="version-header">
+                    <div class="version-number">v2.2.5</div>
+                    <div class="version-date">{{ t('july_2025') }}</div>
+                </div>
+                <ul class="version-changes">
+                    <li>{{ t('ai_dependencies_resolution') }}: {{ t('complete_ai_conflicts_resolved') }}</li>
+                    <li>{{ t('ai_integration_workaround') }}: {{ t('faster_whisper_ollama_pytorch_integration') }}</li>
+                    <li>{{ t('enhanced_system_status') }}: {{ t('accurate_ai_capabilities_detection') }}</li>
+                    <li>{{ t('translation_pipeline_integration') }}: {{ t('seamless_ai_processing_fallback') }}</li>
+                    <li>{{ t('system_monitor_enhancement') }}: {{ t('professional_hardware_monitoring') }}</li>
+                    <li>{{ t('settings_system_optimization') }}: {{ t('advanced_tab_navigation_fixes') }}</li>
+                    <li>{{ t('dependencies_management') }}: {{ t('comprehensive_package_tracking') }}</li>
+                    <li>{{ t('ui_cleanup_optimization') }}: {{ t('streamlined_navigation_interface') }}</li>
+                </ul>
+            </div>
+
+            <div class="version-item">
+                <div class="version-header">
+                    <div class="version-number">v2.2.2</div>
+                    <div class="version-date">{{ t('june_2025') }}</div>
+                </div>
+                <ul class="version-changes">
+                    <li>{{ t('ubuntu_server_compatibility') }}: {{ t('complete_production_ready_deployment') }}</li>
+                    <li>{{ t('enhanced_error_handling') }}: {{ t('safe_database_initialization') }}</li>
+                    <li>{{ t('automated_installation_system') }}: {{ t('comprehensive_ubuntu_server_installer') }}</li>
+                    <li>{{ t('original_functionality_preserved') }}: {{ t('all_v2_2_1_features_maintained') }}</li>
+                    <li>{{ t('production_grade_stability') }}: {{ t('enterprise_deployment_ready') }}</li>
+                    <li>{{ t('comprehensive_testing_suite') }}: {{ t('installation_verification_tools') }}</li>
+                </ul>
+            </div>
+
+            <div class="version-item">
+                <div class="version-header">
+                    <div class="version-number">v2.2.1</div>
+                    <div class="version-date">{{ t('june_2025') }}</div>
+                </div>
+                <ul class="version-changes">
+                    <li>{{ t('centralized_development_tools') }}: {{ t('unified_testing_interface') }}</li>
+                    <li>{{ t('enhanced_sample_data_management') }}: {{ t('bulk_operations_warning_systems') }}</li>
+                    <li>{{ t('template_error_resolution') }}: {{ t('critical_parsing_fixes') }}</li>
+                    <li>{{ t('database_integration_development') }}: {{ t('multilingual_settings_support') }}</li>
+                    <li>{{ t('ui_ux_improvements') }}: {{ t('streamlined_interface_cleanup') }}</li>
+                    <li>{{ t('performance_optimization') }}: {{ t('javascript_error_handling') }}</li>
+                </ul>
+            </div>
+
+            <div class="version-item">
+                <div class="version-header">
+                    <div class="version-number">v2.1.0</div>
+                    <div class="version-date">{{ t('june_2025') }}</div>
+                </div>
+                <ul class="version-changes">
+                    <li>{{ t('enhanced_media_services') }}: Plex, Jellyfin, Emby, Kodi, Radarr, Sonarr</li>
+                    <li>{{ t('mobile_first_design') }}: {{ t('responsive_interface') }}</li>
+                    <li>{{ t('component_architecture') }}: {{ t('modular_templates') }}</li>
+                    <li>{{ t('advanced_gpu_support') }}: {{ t('multi_gpu_detection') }}</li>
+                    <li>{{ t('file_browser_system') }}: {{ t('interactive_navigation') }}</li>
+                    <li>{{ t('server_configuration') }}: {{ t('dynamic_ip_detection') }}</li>
+                    <li>{{ t('github_integration') }}: {{ t('professional_documentation') }}</li>
+                    <li>{{ t('python_compatibility') }}: Python 3.9+ {{ t('support') }}</li>
+                </ul>
+            </div>
+            
+            <div class="version-item">
+                <div class="version-header">
+                    <div class="version-number">v1.0.0</div>
+                    <div class="version-date">{{ t('june_2025') }}</div>
+                </div>
+                <ul class="version-changes">
+                    <li>{{ t('initial_release') }}</li>
+                    <li>{{ t('whisper_ai_integration') }}</li>
+                    <li>{{ t('ollama_llm_support') }}</li>
+                    <li>{{ t('web_interface_complete') }}</li>
+                    <li>{{ t('postgresql_database') }}</li>
+                    <li>{{ t('real_time_monitoring') }}</li>
+                    <li>{{ t('casa_os_integration') }}</li>
+                    <li>{{ t('automated_installer') }}</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Coming Soon Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">{{ t('coming_soon') }} - {{ t('next_generation_support') }}</h2>
+                <p class="section-subtitle">{{ t('upcoming_os_support_description') }}</p>
+            </div>
+            
+            <div class="os-grid">
+                <div class="os-card featured">
+                    <div class="os-icon casa-os"></div>
+                    <div class="os-content">
+                        <h3>Casa OS</h3>
+                        <div class="os-status coming-soon">{{ t('coming_soon') }}</div>
+                        <p>{{ t('casa_os_description') }}</p>
+                        <ul class="os-features">
+                            <li>{{ t('docker_based_ecosystem') }}</li>
+                            <li>{{ t('one_click_installation') }}</li>
+                            <li>{{ t('app_store_integration') }}</li>
+                            <li>{{ t('remote_access_ready') }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="os-card featured">
+                    <div class="os-icon zima-os"></div>
+                    <div class="os-content">
+                        <h3>Zima OS</h3>
+                        <div class="os-status coming-soon">{{ t('coming_soon') }}</div>
+                        <p>{{ t('zima_os_description') }}</p>
+                        <ul class="os-features">
+                            <li>{{ t('native_personal_cloud_os') }}</li>
+                            <li>{{ t('vm_support_zvm') }}</li>
+                            <li>{{ t('gpu_acceleration') }}</li>
+                            <li>{{ t('ota_updates') }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="os-card">
+                    <div class="os-icon fedora"></div>
+                    <div class="os-content">
+                        <h3>Fedora Server</h3>
+                        <div class="os-status planned">{{ t('planned') }}</div>
+                        <p>{{ t('fedora_server_description') }}</p>
+                    </div>
+                </div>
+
+                <div class="os-card">
+                    <div class="os-icon arch"></div>
+                    <div class="os-content">
+                        <h3>Arch Linux</h3>
+                        <div class="os-status planned">{{ t('planned') }}</div>
+                        <p>{{ t('arch_linux_description') }}</p>
+                    </div>
+                </div>
+
+                <div class="os-card">
+                    <div class="os-icon opensuse"></div>
+                    <div class="os-content">
+                        <h3>openSUSE</h3>
+                        <div class="os-status planned">{{ t('planned') }}</div>
+                        <p>{{ t('opensuse_description') }}</p>
+                    </div>
+                </div>
+
+                <div class="os-card">
+                    <div class="os-icon centos"></div>
+                    <div class="os-content">
+                        <h3>Rocky Linux</h3>
+                        <div class="os-status planned">{{ t('planned') }}</div>
+                        <p>{{ t('rocky_linux_description') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="roadmap-info">
+                <h3>{{ t('development_roadmap') }}</h3>
+                <div class="roadmap-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">Q3 2025</div>
+                        <div class="timeline-content">
+                            <strong>Casa OS & Zima OS</strong> - {{ t('official_support_integration') }}
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">Q4 2025</div>
+                        <div class="timeline-content">
+                            <strong>Fedora & Arch</strong> - {{ t('community_driven_packages') }}
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">Q1 2026</div>
+                        <div class="timeline-content">
+                            <strong>Enterprise Linux</strong> - {{ t('rhel_compatible_distributions') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>{{ t('app_title') }}</h3>
+                    <p>{{ t('footer_description') }}</p>
+                    <p><strong>{{ t('version') }}:</strong> 2.2.0</p>
+                    <p><strong>{{ t('build_date') }}:</strong> {{ t('june_2025') }}</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>{{ t('supported_platforms') }}</h3>
+                    <a href="#">Ubuntu Server 22.04+</a>
+                    <a href="#">Debian 11+</a>
+                    <a href="#" class="coming-soon-link">Casa OS ({{ t('coming_soon') }})</a>
+                    <a href="#" class="coming-soon-link">Zima OS ({{ t('coming_soon') }})</a>
+                    <a href="#" class="planned-link">Fedora Server ({{ t('planned') }})</a>
+                    <a href="#" class="planned-link">Arch Linux ({{ t('planned') }})</a>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>{{ t('contact') }}</h3>
+                    <p>عبدالمنعم عوض (AbdelmonemAwad)</p>
+                    <p>Email: Eg2@live.com</p>
+                    <a href="https://github.com/AbdelmonemAwad" target="_blank" class="footer-link">GitHub</a>
+                    <a href="https://www.facebook.com/abdelmonemawad/" target="_blank" class="footer-link">Facebook</a>
+                    <a href="https://www.instagram.com/abdelmonemawad/" target="_blank" class="footer-link">Instagram</a>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>{{ t('license') }}</h3>
+                    <a href="/LICENSE">GPL v3 License</a>
+                    <a href="#privacy">{{ t('privacy_policy') }}</a>
+                    <a href="#terms">{{ t('terms_of_service') }}</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        feather.replace();
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                if (href && href !== '#') {
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>    <script>
+        // Slideshow functionality
+        let currentSlideIndex = 0;
+        let slides = document.querySelectorAll('.slide');
+        let indicators = document.querySelectorAll('.indicator');
+        let isPlaying = true;
+        let slideInterval;
+        
+        function initSlideshow() {
+            slides = document.querySelectorAll('.slide');
+            indicators = document.querySelectorAll('.indicator');
+            showSlide(0);
+            startAutoSlide();
+        }
+        
+        function showSlide(index) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            indicators.forEach(indicator => indicator.classList.remove('active'));
+            
+            slides[index].classList.add('active');
+            indicators[index].classList.add('active');
+            
+            currentSlideIndex = index;
+            updateProgressBar();
+        }
+        
+        function nextSlide() {
+            let nextIndex = (currentSlideIndex + 1) % slides.length;
+            showSlide(nextIndex);
+        }
+        
+        function prevSlide() {
+            let prevIndex = (currentSlideIndex - 1 + slides.length) % slides.length;
+            showSlide(prevIndex);
+        }
+        
+        function currentSlide(index) {
+            showSlide(index - 1);
+        }
+        
+        function startAutoSlide() {
+            slideInterval = setInterval(nextSlide, 4000); // 4 seconds
+        }
+        
+        function stopAutoSlide() {
+            clearInterval(slideInterval);
+        }
+        
+        function togglePlayPause() {
+            const btn = document.getElementById('playPauseBtn');
+            if (isPlaying) {
+                stopAutoSlide();
+                btn.textContent = '▶';
+                isPlaying = false;
+            } else {
+                startAutoSlide();
+                btn.textContent = '⏸';
+                isPlaying = true;
+            }
+        }
+        
+        function updateProgressBar() {
+            const progressBar = document.getElementById('progressBar');
+            const progress = ((currentSlideIndex + 1) / slides.length) * 100;
+            progressBar.style.width = progress + '%';
+        }
+        
+        // Initialize slideshow when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initSlideshow, 100);
+        });
+    </script>

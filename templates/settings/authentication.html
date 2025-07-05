@@ -1,0 +1,75 @@
+{% extends "settings/layout.html" %}
+
+{% block settings_content %}
+<form method="post" action="{{ url_for('settings_authentication') }}">
+    <div class="settings-section">
+        <h3 class="section-title">
+            <i data-feather="lock"></i>
+            {{ t('authentication_settings') }}
+        </h3>
+        
+        <div class="help-box">
+            <div class="help-title">
+                <i data-feather="shield"></i>
+                {{ t('security_info') }}
+            </div>
+            <div class="help-content">
+                {{ t('authentication_description') }}
+            </div>
+        </div>
+
+        <!-- Admin Username -->
+        <div class="form-group">
+            <label class="form-label" for="admin_username">{{ t('admin_username') }}</label>
+            <input type="text" 
+                   name="admin_username" 
+                   id="admin_username" 
+                   value="{{ current_settings.get('admin_username', 'admin') }}" 
+                   class="form-input"
+                   required>
+            <div class="form-description">{{ t('admin_username_description') }}</div>
+        </div>
+
+        <!-- Admin Password -->
+        <div class="form-group">
+            <label class="form-label" for="admin_password">{{ t('admin_password') }}</label>
+            <input type="password" 
+                   name="admin_password" 
+                   id="admin_password" 
+                   placeholder="••••••••••••" 
+                   class="form-input"
+                   minlength="6">
+            <div class="form-description">{{ t('admin_password_description') }}</div>
+        </div>
+
+        <!-- Session Timeout -->
+        <div class="form-group">
+            <label class="form-label" for="session_timeout">{{ t('session_timeout') }}</label>
+            <select name="session_timeout" id="session_timeout" class="form-select">
+                <option value="1800" {% if current_settings.get('session_timeout', '3600') == '1800' %}selected{% endif %}>30 {{ t('minutes') }}</option>
+                <option value="3600" {% if current_settings.get('session_timeout', '3600') == '3600' %}selected{% endif %}>60 {{ t('minutes') }}</option>
+                <option value="7200" {% if current_settings.get('session_timeout', '3600') == '7200' %}selected{% endif %}>120 {{ t('minutes') }}</option>
+                <option value="86400" {% if current_settings.get('session_timeout', '3600') == '86400' %}selected{% endif %}>24 {{ t('hours') }}</option>
+            </select>
+            <div class="form-description">{{ t('session_timeout_description') }}</div>
+        </div>
+
+        <!-- Auto logout on inactivity -->
+        <div class="form-group">
+            <label class="form-label" for="auto_logout">{{ t('auto_logout') }}</label>
+            <select name="auto_logout" id="auto_logout" class="form-select">
+                <option value="true" {% if current_settings.get('auto_logout', 'true') == 'true' %}selected{% endif %}>نعم / Yes</option>
+                <option value="false" {% if current_settings.get('auto_logout', 'true') == 'false' %}selected{% endif %}>لا / No</option>
+            </select>
+            <div class="form-description">{{ t('auto_logout_description') }}</div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="save-button" style="background: var(--accent-green); border-color: var(--accent-green); color: white; margin: 0;">
+            <i data-feather="save"></i>
+            {{ t('save_settings') }}
+        </button>
+    </div>
+</form>
+{% endblock %}
