@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="{{ 'ar' if current_lang == 'ar' else 'en' }}" dir="{{ 'rtl' if current_lang == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('settings') }} - {{ t('app_title') }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background 0.3s;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .main-content {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .settings-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .settings-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .settings-title {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .settings-content {
+            padding: 2rem;
+        }
+
+        .settings-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            font-size: 1.5rem;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .setting-description {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .select-control {
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            background: white;
+            min-width: 120px;
+        }
+
+        .language-selector {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .language-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .language-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .save-button {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 2rem;
+        }
+
+        .save-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #c3e6cb;
+        }
+
+        .theme-preview {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .theme-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .theme-option.active {
+            border-color: #667eea;
+        }
+
+        .theme-colors {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .theme-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 768px) {
+            .setting-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .theme-preview {
+                flex-wrap: wrap;
+            }
+
+            .main-content {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>{{ t('app_title') }}</h1>
+            <nav class="nav-menu">
+                <a href="{{ url_for('dashboard') }}">{{ t('dashboard') }}</a>
+                <a href="{{ url_for('translate') }}">{{ t('translate') }}</a>
+                <a href="{{ url_for('history') }}">{{ t('history') }}</a>
+                <a href="{{ url_for('settings') }}" class="active">{{ t('settings') }}</a>
+                <a href="{{ url_for('user.logout') }}">{{ t('logout') }}</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="settings-container">
+            <div class="settings-header">
+                <h2 class="settings-title">{{ t('settings') }}</h2>
+                <p>تخصيص تجربة استخدام المترجم الذكي</p>
+            </div>
+
+            <div class="settings-content">
+                <div class="settings-section">
+                    <h3 class="section-title">
+                        <span class="section-icon">🌐</span>
+                        اللغة والواجهة
+                    </h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">لغة الواجهة</div>
+                            <div class="setting-description">اختر لغة عرض التطبيق</div>
+                        </div>
+                        <div class="setting-control">
+                            <div class="language-selector">
+                                <button class="language-btn {{ 'active' if current_lang == 'ar' else '' }}" 
+                                        onclick="setLanguage('ar')">العربية</button>
+                                <button class="language-btn {{ 'active' if current_lang == 'en' else '' }}" 
+                                        onclick="setLanguage('en')">English</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">اتجاه النص</div>
+                            <div class="setting-description">اتجاه قراءة النصوص في الواجهة</div>
+                        </div>
+                        <div class="setting-control">
+                            <select class="select-control">
+                                <option value="auto">تلقائي</option>
+                                <option value="rtl" {{ 'selected' if current_lang == 'ar' else '' }}>من اليمين إلى اليسار</option>
+                                <option value="ltr" {{ 'selected' if current_lang == 'en' else '' }}>من اليسار إلى اليمين</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 class="section-title">
+                        <span class="section-icon">🎨</span>
+                        المظهر والثيم
+                    </h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">الثيم</div>
+                            <div class="setting-description">اختر مظهر التطبيق المفضل لديك</div>
+                            <div class="theme-preview">
+                                <div class="theme-option active">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: #667eea;"></div>
+                                        <div class="theme-color" style="background: #764ba2;"></div>
+                                        <div class="theme-color" style="background: #ffffff;"></div>
+                                    </div>
+                                    <span>افتراضي</span>
+                                </div>
+                                <div class="theme-option">
+                                    <div class="theme-colors">
+                                        <div class="theme-color" style="background: #1a202c;"></div>
+                                        <div class="theme-color" style="background: #2d3748;"></div>
+                                        <div class="theme-color" style="background: #4a5568;"></div>
+                                    </div>
+                                    <span>داكن</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">الأنيميشن</div>
+                            <div class="setting-description">تفعيل الحركات والانتقالات</div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 class="section-title">
+                        <span class="section-icon">⚙️</span>
+                        الترجمة والذكاء الاصطناعي
+                    </h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">اللغة الافتراضية للمصدر</div>
+                            <div class="setting-description">اللغة المحددة تلقائياً للنص المراد ترجمته</div>
+                        </div>
+                        <div class="setting-control">
+                            <select class="select-control">
+                                <option value="auto">كشف تلقائي</option>
+                                <option value="ar" selected>العربية</option>
+                                <option value="en">الإنجليزية</option>
+                                <option value="fr">الفرنسية</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">اللغة الافتراضية للهدف</div>
+                            <div class="setting-description">اللغة المحددة تلقائياً للترجمة</div>
+                        </div>
+                        <div class="setting-control">
+                            <select class="select-control">
+                                <option value="en" selected>الإنجليزية</option>
+                                <option value="ar">العربية</option>
+                                <option value="fr">الفرنسية</option>
+                                <option value="es">الإسبانية</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">حفظ التاريخ</div>
+                            <div class="setting-description">حفظ ترجماتك في السجل للرجوع إليها لاحقاً</div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 class="section-title">
+                        <span class="section-icon">🔔</span>
+                        الإشعارات
+                    </h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">إشعارات المتصفح</div>
+                            <div class="setting-description">عرض إشعارات عند اكتمال الترجمة</div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">إشعارات الأخطاء</div>
+                            <div class="setting-description">عرض رسائل عند حدوث خطأ في الترجمة</div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="save-button" onclick="saveSettings()">
+                    حفظ الإعدادات
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function setLanguage(lang) {
+            // Update UI
+            document.querySelectorAll('.language-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Send to server
+            fetch('/api/set-language', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ language: lang })
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      // Reload page to apply language change
+                      window.location.reload();
+                  }
+              });
+        }
+
+        function saveSettings() {
+            // Collect all settings
+            const settings = {
+                theme: document.querySelector('.theme-option.active span').textContent,
+                animations: document.querySelector('input[type="checkbox"]').checked,
+                // Add more settings as needed
+            };
+            
+            // Show success message
+            const successMsg = document.createElement('div');
+            successMsg.className = 'success-message';
+            successMsg.textContent = 'تم حفظ الإعدادات بنجاح';
+            
+            const container = document.querySelector('.settings-content');
+            container.insertBefore(successMsg, container.firstChild);
+            
+            // Remove success message after 3 seconds
+            setTimeout(() => {
+                successMsg.remove();
+            }, 3000);
+        }
+
+        // Theme selection
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.theme-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="{{ 'ar' if current_lang == 'ar' else 'en' }}" dir="{{ 'rtl' if current_lang == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('translate') }} - {{ t('app_title') }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background 0.3s;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .main-content {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .translate-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .translate-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .translate-title {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .translate-form {
+            padding: 2rem;
+        }
+
+        .language-selector {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        .language-select {
+            position: relative;
+        }
+
+        .language-select select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            background: white;
+            direction: {{ 'rtl' if current_lang == 'ar' else 'ltr' }};
+        }
+
+        .language-select label {
+            position: absolute;
+            top: -0.5rem;
+            {{ 'right' if current_lang == 'ar' else 'left' }}: 1rem;
+            background: white;
+            padding: 0 0.5rem;
+            font-size: 0.8rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .swap-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .swap-btn:hover {
+            transform: rotate(180deg);
+        }
+
+        .text-areas {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .text-group {
+            position: relative;
+        }
+
+        .text-group label {
+            position: absolute;
+            top: -0.5rem;
+            {{ 'right' if current_lang == 'ar' else 'left' }}: 1rem;
+            background: white;
+            padding: 0 0.5rem;
+            font-size: 0.8rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .text-group textarea {
+            width: 100%;
+            height: 200px;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            resize: vertical;
+            direction: {{ 'rtl' if current_lang == 'ar' else 'ltr' }};
+        }
+
+        .text-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .translate-btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .translate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .result-section {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: #f7fafc;
+            border-radius: 0.75rem;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #c3e6cb;
+        }
+
+        @media (max-width: 768px) {
+            .language-selector {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .text-areas {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .main-content {
+                padding: 0 1rem;
+            }
+
+            .translate-form {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>{{ t('app_title') }}</h1>
+            <nav class="nav-menu">
+                <a href="{{ url_for('dashboard') }}">{{ t('dashboard') }}</a>
+                <a href="{{ url_for('translate') }}">{{ t('translate') }}</a>
+                <a href="{{ url_for('history') }}">{{ t('history') }}</a>
+                <a href="{{ url_for('user.logout') }}">{{ t('logout') }}</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="translate-container">
+            <div class="translate-header">
+                <h2 class="translate-title">{{ t('translate') }}</h2>
+                <p>ترجمة ذكية بين اللغات المختلفة</p>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="result-section">
+                        {% for message in messages %}
+                            <div class="success-message">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="translate-form">
+                <div class="language-selector">
+                    <div class="language-select">
+                        <label>{{ t('source_language') }}</label>
+                        <select name="source_lang" id="source_lang">
+                            <option value="ar" {{ 'selected' if source_lang == 'ar' else '' }}>{{ t('arabic') }}</option>
+                            <option value="en" {{ 'selected' if source_lang == 'en' else '' }}>{{ t('english') }}</option>
+                            <option value="fr" {{ 'selected' if source_lang == 'fr' else '' }}>{{ t('french') }}</option>
+                            <option value="es" {{ 'selected' if source_lang == 'es' else '' }}>{{ t('spanish') }}</option>
+                            <option value="de" {{ 'selected' if source_lang == 'de' else '' }}>{{ t('german') }}</option>
+                            <option value="it" {{ 'selected' if source_lang == 'it' else '' }}>{{ t('italian') }}</option>
+                        </select>
+                    </div>
+
+                    <button type="button" class="swap-btn" onclick="swapLanguages()">⇄</button>
+
+                    <div class="language-select">
+                        <label>{{ t('target_language') }}</label>
+                        <select name="target_lang" id="target_lang">
+                            <option value="ar" {{ 'selected' if target_lang == 'ar' else '' }}>{{ t('arabic') }}</option>
+                            <option value="en" {{ 'selected' if target_lang == 'en' else '' }}>{{ t('english') }}</option>
+                            <option value="fr" {{ 'selected' if target_lang == 'fr' else '' }}>{{ t('french') }}</option>
+                            <option value="es" {{ 'selected' if target_lang == 'es' else '' }}>{{ t('spanish') }}</option>
+                            <option value="de" {{ 'selected' if target_lang == 'de' else '' }}>{{ t('german') }}</option>
+                            <option value="it" {{ 'selected' if target_lang == 'it' else '' }}>{{ t('italian') }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="text-areas">
+                    <div class="text-group">
+                        <label>{{ t('source_text') }}</label>
+                        <textarea name="source_text" id="source_text" placeholder="أدخل النص المراد ترجمته..." required>{{ source_text or '' }}</textarea>
+                    </div>
+
+                    <div class="text-group">
+                        <label>{{ t('target_text') }}</label>
+                        <textarea id="target_text" placeholder="النص المترجم سيظهر هنا..." readonly>{{ target_text or '' }}</textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="translate-btn">{{ t('translate_button') }}</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        function swapLanguages() {
+            const sourceLang = document.getElementById('source_lang');
+            const targetLang = document.getElementById('target_lang');
+            const sourceText = document.getElementById('source_text');
+            const targetText = document.getElementById('target_text');
+
+            // Swap language selections
+            const tempLang = sourceLang.value;
+            sourceLang.value = targetLang.value;
+            targetLang.value = tempLang;
+
+            // Swap text content
+            const tempText = sourceText.value;
+            sourceText.value = targetText.value;
+            targetText.value = tempText;
+        }
+
+        // Auto-resize textareas
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        document.getElementById('source_text').addEventListener('input', function() {
+            autoResize(this);
+        });
+
+        // Character counter
+        document.getElementById('source_text').addEventListener('input', function() {
+            const count = this.value.length;
+            console.log('Character count:', count);
+        });
+    </script>
+</body>
+</html>

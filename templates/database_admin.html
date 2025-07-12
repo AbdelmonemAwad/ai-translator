@@ -1,0 +1,468 @@
+{% extends "layout.html" %}
+{% block title %}إدارة قاعدة البيانات - المترجم الذكي{% endblock %}
+
+{% block head_extra %}
+<style>
+    .db-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .db-stat-card {
+        background: var(--bg-primary);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+    .db-stat-card h3 {
+        margin-top: 0;
+        color: var(--accent-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    .db-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .db-action-btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .db-action-btn.backup {
+        background: var(--accent-primary);
+        color: white;
+    }
+    .db-action-btn.cleanup {
+        background: var(--accent-warning);
+        color: white;
+    }
+    .db-action-btn.optimize {
+        background: var(--accent-success);
+        color: white;
+    }
+    .db-action-btn.danger {
+        background: var(--accent-error);
+        color: white;
+    }
+    .query-console {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .query-input {
+        width: 100%;
+        min-height: 120px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 1rem;
+        font-family: 'Courier New', monospace;
+        color: var(--text-primary);
+        resize: vertical;
+    }
+    .query-results {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 1rem;
+        margin-top: 1rem;
+        max-height: 400px;
+        overflow: auto;
+    }
+    .table-overview {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .table-header {
+        background: var(--bg-secondary);
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .table-row {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr auto;
+        gap: 1rem;
+        align-items: center;
+    }
+    .table-row:last-child {
+        border-bottom: none;
+    }
+    .table-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .table-action-btn {
+        padding: 0.25rem 0.5rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    .loading-content {
+        background: var(--bg-primary);
+        padding: 2rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+    <div class="panel-header">
+        <h2><i data-feather="database"></i>إدارة قاعدة البيانات</h2>
+    </div>
+    
+    <!-- Database Statistics -->
+    <div class="db-stats-grid" id="db-stats">
+        <div class="db-stat-card">
+            <h3><i data-feather="hard-drive"></i>إجمالي الحجم</h3>
+            <div class="stat-number" id="total-size">--</div>
+            <div class="stat-label">ميجابايت</div>
+        </div>
+        <div class="db-stat-card">
+            <h3><i data-feather="layers"></i>عدد الجداول</h3>
+            <div class="stat-number" id="table-count">--</div>
+            <div class="stat-label">جدول</div>
+        </div>
+        <div class="db-stat-card">
+            <h3><i data-feather="file-text"></i>إجمالي السجلات</h3>
+            <div class="stat-number" id="total-records">--</div>
+            <div class="stat-label">سجل</div>
+        </div>
+        <div class="db-stat-card">
+            <h3><i data-feather="clock"></i>آخر نسخة احتياطية</h3>
+            <div class="stat-number" id="last-backup">--</div>
+            <div class="stat-label">منذ</div>
+        </div>
+    </div>
+    
+    <!-- Database Actions -->
+    <div class="db-actions">
+        <button class="db-action-btn backup" onclick="performBackup()">
+            <i data-feather="download"></i>إنشاء نسخة احتياطية
+        </button>
+        <button class="db-action-btn optimize" onclick="optimizeDatabase()">
+            <i data-feather="zap"></i>تحسين قاعدة البيانات
+        </button>
+        <button class="db-action-btn cleanup" onclick="cleanupDatabase()">
+            <i data-feather="trash-2"></i>تنظيف البيانات القديمة
+        </button>
+        <button class="db-action-btn danger" onclick="confirmReset()">
+            <i data-feather="alert-triangle"></i>إعادة تعيين البيانات
+        </button>
+    </div>
+    
+    <!-- SQL Query Console -->
+    <div class="query-console">
+        <h3><i data-feather="terminal"></i>وحدة تحكم SQL</h3>
+        <textarea class="query-input" id="sql-query" placeholder="أدخل استعلام SQL هنا..."></textarea>
+        <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+            <button class="action-btn btn-primary" onclick="executeQuery()">
+                <i data-feather="play"></i>تنفيذ الاستعلام
+            </button>
+            <button class="action-btn btn-secondary" onclick="clearQuery()">
+                <i data-feather="x"></i>مسح
+            </button>
+        </div>
+        <div class="query-results" id="query-results" style="display: none;"></div>
+    </div>
+    
+    <!-- Tables Overview -->
+    <div class="table-overview">
+        <div class="table-header">
+            <h3><i data-feather="grid"></i>نظرة عامة على الجداول</h3>
+        </div>
+        <div class="table-row" style="font-weight: 600; background: var(--bg-secondary);">
+            <div>اسم الجدول</div>
+            <div>عدد السجلات</div>
+            <div>الحجم (MB)</div>
+            <div>آخر تحديث</div>
+            <div>الإجراءات</div>
+        </div>
+        <div id="tables-list">
+            <!-- Tables will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading-overlay">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <p>جارٍ معالجة العملية...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadDatabaseStats();
+    loadTablesOverview();
+});
+
+async function loadDatabaseStats() {
+    try {
+        const response = await fetch('/api/database/stats');
+        const data = await response.json();
+        
+        document.getElementById('total-size').textContent = data.total_size_mb.toFixed(1);
+        document.getElementById('table-count').textContent = data.table_count;
+        document.getElementById('total-records').textContent = data.total_records.toLocaleString();
+        document.getElementById('last-backup').textContent = data.last_backup || 'لم يتم إجراء نسخ احتياطي';
+    } catch (error) {
+        console.error('Failed to load database stats:', error);
+    }
+}
+
+async function loadTablesOverview() {
+    try {
+        const response = await fetch('/api/database/tables');
+        const tables = await response.json();
+        
+        const tablesList = document.getElementById('tables-list');
+        tablesList.innerHTML = '';
+        
+        tables.forEach(table => {
+            const row = document.createElement('div');
+            row.className = 'table-row';
+            row.innerHTML = `
+                <div>${table.name}</div>
+                <div>${table.record_count.toLocaleString()}</div>
+                <div>${table.size_mb.toFixed(2)}</div>
+                <div>${table.last_updated}</div>
+                <div class="table-actions">
+                    <button class="table-action-btn btn-primary" onclick="viewTable('${table.name}')">
+                        <i data-feather="eye"></i>عرض
+                    </button>
+                    <button class="table-action-btn btn-warning" onclick="analyzeTable('${table.name}')">
+                        <i data-feather="bar-chart"></i>تحليل
+                    </button>
+                </div>
+            `;
+            tablesList.appendChild(row);
+        });
+        
+        // Re-initialize Feather icons
+        feather.replace();
+    } catch (error) {
+        console.error('Failed to load tables overview:', error);
+    }
+}
+
+async function executeQuery() {
+    const query = document.getElementById('sql-query').value.trim();
+    if (!query) {
+        alert('يرجى إدخال استعلام SQL');
+        return;
+    }
+    
+    const resultsDiv = document.getElementById('query-results');
+    resultsDiv.style.display = 'block';
+    resultsDiv.innerHTML = '<div class="spinner"></div><p>جارٍ تنفيذ الاستعلام...</p>';
+    
+    try {
+        const response = await fetch('/api/database/query', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({query: query})
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            resultsDiv.innerHTML = `<div style="color: var(--accent-error);">خطأ: ${data.error}</div>`;
+        } else {
+            let html = `<div style="color: var(--accent-success);">تم تنفيذ الاستعلام بنجاح</div>`;
+            
+            if (data.results && data.results.length > 0) {
+                html += '<table style="width: 100%; margin-top: 1rem; border-collapse: collapse;">';
+                
+                // Headers
+                const headers = Object.keys(data.results[0]);
+                html += '<tr style="background: var(--bg-primary);">';
+                headers.forEach(header => {
+                    html += `<th style="padding: 0.5rem; border: 1px solid var(--border-color);">${header}</th>`;
+                });
+                html += '</tr>';
+                
+                // Rows
+                data.results.forEach(row => {
+                    html += '<tr>';
+                    headers.forEach(header => {
+                        html += `<td style="padding: 0.5rem; border: 1px solid var(--border-color);">${row[header] || ''}</td>`;
+                    });
+                    html += '</tr>';
+                });
+                
+                html += '</table>';
+                html += `<p style="margin-top: 1rem; color: var(--text-secondary);">عدد النتائج: ${data.results.length}</p>`;
+            } else {
+                html += '<p style="margin-top: 1rem; color: var(--text-secondary);">لا توجد نتائج للعرض</p>';
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+    } catch (error) {
+        resultsDiv.innerHTML = `<div style="color: var(--accent-error);">خطأ في الاتصال: ${error.message}</div>`;
+    }
+}
+
+function clearQuery() {
+    document.getElementById('sql-query').value = '';
+    document.getElementById('query-results').style.display = 'none';
+}
+
+async function performBackup() {
+    if (!confirm('هل أنت متأكد من إنشاء نسخة احتياطية؟')) return;
+    
+    showLoading();
+    try {
+        const response = await fetch('/api/database/backup', {method: 'POST'});
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('تم إنشاء النسخة الاحتياطية بنجاح');
+            loadDatabaseStats();
+        } else {
+            alert('فشل في إنشاء النسخة الاحتياطية: ' + data.error);
+        }
+    } catch (error) {
+        alert('خطأ: ' + error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function optimizeDatabase() {
+    if (!confirm('هل تريد تحسين قاعدة البيانات؟ قد يستغرق هذا بعض الوقت.')) return;
+    
+    showLoading();
+    try {
+        const response = await fetch('/api/database/optimize', {method: 'POST'});
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('تم تحسين قاعدة البيانات بنجاح');
+            loadDatabaseStats();
+            loadTablesOverview();
+        } else {
+            alert('فشل في تحسين قاعدة البيانات: ' + data.error);
+        }
+    } catch (error) {
+        alert('خطأ: ' + error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function cleanupDatabase() {
+    if (!confirm('هل تريد تنظيف البيانات القديمة؟ سيتم حذف السجلات القديمة والملفات غير المستخدمة.')) return;
+    
+    showLoading();
+    try {
+        const response = await fetch('/api/database/cleanup', {method: 'POST'});
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`تم تنظيف قاعدة البيانات. تم حذف ${data.cleaned_records} سجل.`);
+            loadDatabaseStats();
+            loadTablesOverview();
+        } else {
+            alert('فشل في تنظيف قاعدة البيانات: ' + data.error);
+        }
+    } catch (error) {
+        alert('خطأ: ' + error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+function confirmReset() {
+    if (confirm('تحذير: هذا سيحذف جميع البيانات نهائياً. هل أنت متأكد؟')) {
+        if (confirm('هذا الإجراء لا يمكن التراجع عنه. اكتب "RESET" للتأكيد.')) {
+            const confirmation = prompt('اكتب "RESET" للتأكيد:');
+            if (confirmation === 'RESET') {
+                resetDatabase();
+            }
+        }
+    }
+}
+
+async function resetDatabase() {
+    showLoading();
+    try {
+        const response = await fetch('/api/database/reset', {method: 'POST'});
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('تم إعادة تعيين قاعدة البيانات بنجاح');
+            location.reload();
+        } else {
+            alert('فشل في إعادة تعيين قاعدة البيانات: ' + data.error);
+        }
+    } catch (error) {
+        alert('خطأ: ' + error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+function viewTable(tableName) {
+    document.getElementById('sql-query').value = `SELECT * FROM ${tableName} LIMIT 100;`;
+    executeQuery();
+}
+
+function analyzeTable(tableName) {
+    document.getElementById('sql-query').value = `SELECT COUNT(*) as total_records FROM ${tableName};`;
+    executeQuery();
+}
+
+function showLoading() {
+    document.getElementById('loading-overlay').style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').style.display = 'none';
+}
+</script>
+{% endblock %}

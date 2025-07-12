@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="{{ 'ar' if current_lang == 'ar' else 'en' }}" dir="{{ 'rtl' if current_lang == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('history') }} - {{ t('app_title') }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background 0.3s;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .main-content {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .history-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .history-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .history-title {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .history-content {
+            padding: 2rem;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            background: white;
+            min-width: 150px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            min-width: 200px;
+        }
+
+        .translation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .translation-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: box-shadow 0.3s;
+        }
+
+        .translation-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .translation-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .language-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            background: #667eea;
+            color: white;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .timestamp {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .translation-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .text-section {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .source-section {
+            background: #f7fafc;
+        }
+
+        .target-section {
+            background: #edf2f7;
+        }
+
+        .text-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .text-content {
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #718096;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .new-translation-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .new-translation-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .translation-content {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .translation-meta {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .main-content {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>{{ t('app_title') }}</h1>
+            <nav class="nav-menu">
+                <a href="{{ url_for('dashboard') }}">{{ t('dashboard') }}</a>
+                <a href="{{ url_for('translate') }}">{{ t('translate') }}</a>
+                <a href="{{ url_for('history') }}" class="active">{{ t('history') }}</a>
+                <a href="{{ url_for('user.logout') }}">{{ t('logout') }}</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="history-container">
+            <div class="history-header">
+                <h2 class="history-title">{{ t('history') }}</h2>
+                <p>سجل جميع ترجماتك السابقة</p>
+            </div>
+
+            <div class="history-content">
+                {% if translations %}
+                    <div class="stats-summary">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ translations|length }}</div>
+                            <div class="stat-label">إجمالي الترجمات</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ translations|selectattr('source_lang', 'equalto', 'ar')|list|length }}</div>
+                            <div class="stat-label">من العربية</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ translations|selectattr('target_lang', 'equalto', 'ar')|list|length }}</div>
+                            <div class="stat-label">إلى العربية</div>
+                        </div>
+                    </div>
+
+                    <div class="filter-bar">
+                        <select class="filter-select" id="languageFilter">
+                            <option value="">جميع اللغات</option>
+                            <option value="ar">العربية</option>
+                            <option value="en">الإنجليزية</option>
+                            <option value="fr">الفرنسية</option>
+                            <option value="es">الإسبانية</option>
+                            <option value="de">الألمانية</option>
+                            <option value="it">الإيطالية</option>
+                        </select>
+                        <input type="text" class="search-input" placeholder="ابحث في الترجمات..." id="searchInput">
+                    </div>
+
+                    <div class="translation-list" id="translationList">
+                        {% for translation in translations %}
+                            <div class="translation-card" 
+                                 data-source-lang="{{ translation.source_lang }}" 
+                                 data-target-lang="{{ translation.target_lang }}"
+                                 data-source-text="{{ translation.source_text|lower }}"
+                                 data-target-text="{{ translation.target_text|lower }}">
+                                <div class="translation-meta">
+                                    <div class="language-badges">
+                                        <span class="language-badge">
+                                            {{ translation.source_lang.upper() }} → {{ translation.target_lang.upper() }}
+                                        </span>
+                                    </div>
+                                    <span class="timestamp">{{ translation.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                                </div>
+                                
+                                <div class="translation-content">
+                                    <div class="text-section source-section">
+                                        <div class="text-label">النص المصدر ({{ translation.source_lang.upper() }})</div>
+                                        <div class="text-content">{{ translation.source_text }}</div>
+                                    </div>
+                                    
+                                    <div class="text-section target-section">
+                                        <div class="text-label">النص المترجم ({{ translation.target_lang.upper() }})</div>
+                                        <div class="text-content">{{ translation.target_text }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">📚</div>
+                        <h3>لا توجد ترجمات حتى الآن</h3>
+                        <p>ابدأ بترجمة نصوصك الأولى وستظهر هنا</p>
+                        <a href="{{ url_for('translate') }}" class="new-translation-btn">إنشاء ترجمة جديدة</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Filter and search functionality
+        const languageFilter = document.getElementById('languageFilter');
+        const searchInput = document.getElementById('searchInput');
+        const translationCards = document.querySelectorAll('.translation-card');
+
+        function filterTranslations() {
+            const selectedLang = languageFilter.value;
+            const searchTerm = searchInput.value.toLowerCase();
+
+            translationCards.forEach(card => {
+                const sourceLang = card.dataset.sourceLang;
+                const targetLang = card.dataset.targetLang;
+                const sourceText = card.dataset.sourceText;
+                const targetText = card.dataset.targetText;
+
+                const matchesLanguage = !selectedLang || 
+                    sourceLang === selectedLang || targetLang === selectedLang;
+                
+                const matchesSearch = !searchTerm || 
+                    sourceText.includes(searchTerm) || targetText.includes(searchTerm);
+
+                if (matchesLanguage && matchesSearch) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        languageFilter.addEventListener('change', filterTranslations);
+        searchInput.addEventListener('input', filterTranslations);
+
+        // Copy text functionality
+        document.querySelectorAll('.text-content').forEach(element => {
+            element.addEventListener('click', function() {
+                navigator.clipboard.writeText(this.textContent).then(() => {
+                    // Show temporary feedback
+                    const original = this.style.background;
+                    this.style.background = '#d4edda';
+                    setTimeout(() => {
+                        this.style.background = original;
+                    }, 500);
+                });
+            });
+            
+            // Add cursor pointer to indicate clickable
+            element.style.cursor = 'pointer';
+            element.title = 'انقر للنسخ';
+        });
+    </script>
+</body>
+</html>

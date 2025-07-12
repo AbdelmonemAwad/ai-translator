@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">إصلاح مشكلة "No module named pip"</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>المشكلة:</strong> عند محاولة تثبيت مكتبات مثل <code>transformers</code>، قد تظهر رسالة الخطأ التالية:
+                        <pre class="mt-2"><code>Failed to install transformers: c:\Users\Eg2\Documents\trae pro\1\ai-translator1\venv\Scripts\python.exe: No module named pip</code></pre>
+                    </div>
+                    
+                    <h5 class="mt-4">الحل السريع</h5>
+                    <p>تم توفير سكريبتات لإصلاح هذه المشكلة تلقائيًا:</p>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header">لمستخدمي Windows</div>
+                        <div class="card-body">
+                            <ol>
+                                <li>أغلق تطبيق المترجم الآلي إذا كان قيد التشغيل</li>
+                                <li>انقر نقرًا مزدوجًا على ملف <code>fix_pip.bat</code> في مجلد التطبيق</li>
+                                <li>انتظر حتى اكتمال العملية</li>
+                                <li>أعد تشغيل تطبيق المترجم الآلي</li>
+                            </ol>
+                            <a href="/download-fix-pip-bat" class="btn btn-sm btn-primary">تنزيل fix_pip.bat</a>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header">لمستخدمي Linux/Mac</div>
+                        <div class="card-body">
+                            <ol>
+                                <li>أغلق تطبيق المترجم الآلي إذا كان قيد التشغيل</li>
+                                <li>افتح Terminal</li>
+                                <li>انتقل إلى مجلد المترجم الآلي</li>
+                                <li>قم بتنفيذ السكريبت: <code>bash fix_pip.sh</code></li>
+                                <li>انتظر حتى اكتمال العملية</li>
+                                <li>أعد تشغيل تطبيق المترجم الآلي</li>
+                            </ol>
+                            <a href="/download-fix-pip-sh" class="btn btn-sm btn-primary">تنزيل fix_pip.sh</a>
+                        </div>
+                    </div>
+                    
+                    <h5 class="mt-4">الحل اليدوي</h5>
+                    <p>إذا لم تعمل السكريبتات، يمكنك حل المشكلة يدويًا باتباع الخطوات التالية:</p>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header">لنظام Windows</div>
+                        <div class="card-body">
+                            <ol>
+                                <li>افتح موجه الأوامر (Command Prompt)</li>
+                                <li>انتقل إلى مجلد المترجم الآلي</li>
+                                <li>قم بتنشيط البيئة الافتراضية:
+                                    <pre><code>venv\Scripts\activate</code></pre>
+                                </li>
+                                <li>قم بتثبيت pip:
+                                    <pre><code>python -m ensurepip --upgrade</code></pre>
+                                    أو
+                                    <pre><code>python -m ensurepip --default-pip</code></pre>
+                                </li>
+                                <li>قم بترقية pip:
+                                    <pre><code>python -m pip install --upgrade pip</code></pre>
+                                </li>
+                                <li>قم بتثبيت المكتبات المطلوبة:
+                                    <pre><code>python -m pip install transformers torch torchaudio</code></pre>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header">لنظام Linux/Mac</div>
+                        <div class="card-body">
+                            <ol>
+                                <li>افتح Terminal</li>
+                                <li>انتقل إلى مجلد المترجم الآلي</li>
+                                <li>قم بتنشيط البيئة الافتراضية:
+                                    <pre><code>source venv/bin/activate</code></pre>
+                                </li>
+                                <li>قم بتثبيت pip:
+                                    <pre><code>python -m ensurepip --upgrade</code></pre>
+                                    أو
+                                    <pre><code>python -m ensurepip --default-pip</code></pre>
+                                </li>
+                                <li>قم بترقية pip:
+                                    <pre><code>python -m pip install --upgrade pip</code></pre>
+                                </li>
+                                <li>قم بتثبيت المكتبات المطلوبة:
+                                    <pre><code>python -m pip install transformers torch torchaudio</code></pre>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <h5 class="mt-4">ملاحظات إضافية</h5>
+                    <ul>
+                        <li>إذا استمرت المشكلة، قد تحتاج إلى إعادة إنشاء البيئة الافتراضية بالكامل</li>
+                        <li>تأكد من أن لديك اتصال بالإنترنت أثناء تنفيذ هذه الخطوات</li>
+                        <li>قد تحتاج إلى صلاحيات المسؤول (Administrator) لتنفيذ بعض هذه الأوامر</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

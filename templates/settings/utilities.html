@@ -1,0 +1,171 @@
+{% extends "settings/layout.html" %}
+
+{% block title %}{{ t('utilities_settings') }}{% endblock %}
+
+{% block settings_content %}
+<div class="settings-content">
+    <div class="settings-header">
+        <div class="header-icon">
+            <i data-feather="tool"></i>
+        </div>
+        <div class="header-content">
+            <h2>{{ t('utilities_settings') }}</h2>
+            <p>{{ t('utilities_settings_description') }}</p>
+        </div>
+    </div>
+
+    <!-- Sub-tabs for Utilities section -->
+    <div class="sub-tabs">
+        <a href="#helper-programs" class="sub-tab active" onclick="showUtilitiesTab('helper-programs', this)">
+            <i data-feather="package"></i>
+            {{ t('helper_programs') }}
+        </a>
+    </div>
+
+    <form method="post" action="{{ url_for('settings.settings_utilities') }}">
+        <!-- Helper Programs Tab -->
+        <div id="helper-programs" class="tab-content active">
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <i data-feather="package"></i>
+                    {{ t('helper_programs') }}
+                </h3>
+                
+                <div class="help-box">
+                    <div class="help-title">
+                        <i data-feather="info"></i>
+                        {{ t('helper_programs_info') }}
+                    </div>
+                    <div class="help-content">
+                        {{ t('helper_programs_description') }}
+                    </div>
+                </div>
+
+                <!-- FFmpeg Configuration -->
+                <div class="settings-row">
+                    <div class="setting-label">
+                        <label for="ffmpeg_path">FFmpeg</label>
+                        <div class="setting-description">{{ t('ffmpeg_description') }}</div>
+                    </div>
+                    <div class="setting-control">
+                        <div class="input-with-buttons">
+                            <input type="text" id="ffmpeg_path" name="UTILITIES.FFMPEG_PATH" value="{{ current_settings.get('UTILITIES.FFMPEG_PATH', '') }}" placeholder="{{ t('path_to_ffmpeg') }}">
+                            <button type="button" class="btn btn-secondary" onclick="browseFfmpegPath()">
+                                <i data-feather="folder"></i>
+                                {{ t('browse') }}
+                            </button>
+                            <button type="button" class="btn btn-info" onclick="checkFfmpegStatus()">
+                                <i data-feather="check-circle"></i>
+                                {{ t('check_status') }}
+                            </button>
+                        </div>
+                        <div id="ffmpeg-status" class="status-indicator">
+                            <span class="status-unknown">{{ t('status_unknown') }}</span>
+                        </div>
+                        <div class="setting-actions">
+                            <button type="button" class="btn btn-primary" onclick="installFfmpeg()">
+                                <i data-feather="download"></i>
+                                {{ t('install_ffmpeg') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i data-feather="save"></i>
+                {{ t('save_settings') }}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function showUtilitiesTab(tabId, element) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show the selected tab content
+    document.getElementById(tabId).classList.add('active');
+    
+    // Update active tab styling
+    document.querySelectorAll('.sub-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    element.classList.add('active');
+}
+
+function browseFfmpegPath() {
+    // Send AJAX request to open file browser
+    fetch('/api/browse-file?filter=exe')
+        .then(response => response.json())
+        .then(data => {
+            if (data.path) {
+                document.getElementById('ffmpeg_path').value = data.path;
+            }
+        })
+        .catch(error => {
+            console.error('Error browsing for FFmpeg:', error);
+        });
+}
+
+function checkFfmpegStatus() {
+    const ffmpegPath = document.getElementById('ffmpeg_path').value;
+    const statusElement = document.getElementById('ffmpeg-status');
+    
+    // Show loading state
+    statusElement.innerHTML = '<span class="status-checking">{{ t("checking") }}...</span>';
+    
+    // Send AJAX request to check FFmpeg status
+    fetch('/api/check-ffmpeg-status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ path: ffmpegPath }),
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                statusElement.innerHTML = '<span class="status-ok">{{ t("status_ok") }} - ' + data.version + '</span>';
+            } else {
+                statusElement.innerHTML = '<span class="status-error">{{ t("status_error") }} - ' + data.message + '</span>';
+            }
+        })
+        .catch(error => {
+            console.error('Error checking FFmpeg status:', error);
+            statusElement.innerHTML = '<span class="status-error">{{ t("check_failed") }}</span>';
+        });
+}
+
+function installFfmpeg() {
+    if (confirm('{{ t("confirm_install_ffmpeg") }}')) {
+        // Show installation progress
+        const statusElement = document.getElementById('ffmpeg-status');
+        statusElement.innerHTML = '<span class="status-installing">{{ t("installing") }}...</span>';
+        
+        // Send AJAX request to install FFmpeg
+        fetch('/api/install-ffmpeg', {
+            method: 'POST',
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusElement.innerHTML = '<span class="status-ok">{{ t("install_success") }}</span>';
+                    document.getElementById('ffmpeg_path').value = data.path;
+                } else {
+                    statusElement.innerHTML = '<span class="status-error">{{ t("install_failed") }} - ' + data.message + '</span>';
+                }
+            })
+            .catch(error => {
+                console.error('Error installing FFmpeg:', error);
+                statusElement.innerHTML = '<span class="status-error">{{ t("install_failed") }}</span>';
+            });
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="{{ 'ar' if current_lang == 'ar' else 'en' }}" dir="{{ 'rtl' if current_lang == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('dashboard') }} - {{ t('app_title') }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .language-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .language-toggle a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            transition: all 0.3s;
+        }
+
+        .language-toggle a:hover,
+        .language-toggle a.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .welcome-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .welcome-title {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .action-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .action-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-desc {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .recent-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #2d3748;
+        }
+
+        .translation-item {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .translation-item:last-child {
+            border-bottom: none;
+        }
+
+        .translation-text {
+            flex: 1;
+        }
+
+        .source-text {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .target-text {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .translation-meta {
+            text-align: {{ 'left' if current_lang == 'ar' else 'right' }};
+            font-size: 0.8rem;
+            color: #a0aec0;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1 class="app-title">{{ t('app_title') }}</h1>
+            <div class="user-info">
+                <div class="language-toggle">
+                    <a href="?lang=ar" class="{{ 'active' if current_lang == 'ar' else '' }}">العربية</a>
+                    <a href="?lang=en" class="{{ 'active' if current_lang == 'en' else '' }}">English</a>
+                </div>
+                <span>{{ t('welcome') }}, {{ user.username }}</span>
+                <a href="{{ url_for('user.logout') }}" class="logout-btn">{{ t('logout') }}</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="welcome-section">
+            <h2 class="welcome-title">{{ t('welcome') }} {{ t('dashboard') }}</h2>
+            <p>{{ t('app_title') }} - نظام ترجمة متقدم مع دعم متعدد اللغات</p>
+        </section>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ recent_translations|length }}</div>
+                <div class="stat-label">الترجمات الأخيرة</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">6</div>
+                <div class="stat-label">اللغات المدعومة</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">متوفر دائماً</div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <a href="{{ url_for('translate') }}" class="action-card">
+                <span class="action-icon">🔄</span>
+                <div class="action-title">{{ t('translate') }}</div>
+                <div class="action-desc">ترجمة نص جديد بين اللغات المختلفة</div>
+            </a>
+            
+            <a href="{{ url_for('history') }}" class="action-card">
+                <span class="action-icon">📚</span>
+                <div class="action-title">{{ t('history') }}</div>
+                <div class="action-desc">عرض سجل الترجمات السابقة</div>
+            </a>
+            
+            <a href="{{ url_for('settings') }}" class="action-card">
+                <span class="action-icon">⚙️</span>
+                <div class="action-title">{{ t('settings') }}</div>
+                <div class="action-desc">إعدادات النظام واللغة</div>
+            </a>
+        </div>
+
+        <section class="recent-section">
+            <h3 class="section-title">الترجمات الأخيرة</h3>
+            {% if recent_translations %}
+                {% for translation in recent_translations %}
+                    <div class="translation-item">
+                        <div class="translation-text">
+                            <div class="source-text">{{ translation.source_text[:100] }}{% if translation.source_text|length > 100 %}...{% endif %}</div>
+                            <div class="target-text">{{ translation.target_text[:100] }}{% if translation.target_text|length > 100 %}...{% endif %}</div>
+                        </div>
+                        <div class="translation-meta">
+                            <div>{{ translation.source_lang }} → {{ translation.target_lang }}</div>
+                            <div>{{ translation.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>لا توجد ترجمات حتى الآن</p>
+                    <p><a href="{{ url_for('translate') }}">ابدأ الترجمة الآن</a></p>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        // Auto-refresh dashboard stats every 30 seconds
+        setInterval(function() {
+            // Add any dynamic updates here
+        }, 30000);
+    </script>
+</body>
+</html>

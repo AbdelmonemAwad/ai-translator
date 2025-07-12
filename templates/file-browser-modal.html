@@ -1,0 +1,29 @@
+<!-- File Browser Modal -->
+<div id="file-browser-modal" class="file-browser-modal">
+    <div class="file-browser-content">
+        <div class="file-browser-header">
+            <h3 class="file-browser-title" id="file-browser-title">{{ t('browse_folders') }}</h3>
+            <button class="file-browser-close" onclick="closeFileBrowser()" title="{{ t('close') }}">
+                ✕
+            </button>
+        </div>
+        <div class="file-browser-body">
+            <div class="current-path" id="current-path">/</div>
+            <div id="folder-loading" class="folder-loading" style="display: none;">
+                {{ t('loading') }}...
+                <div class="spinner"></div>
+            </div>
+            <ul id="folder-list" class="folder-list"></ul>
+        </div>
+        <div class="file-browser-footer">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <strong>{{ t('selected_path') }}:</strong>
+                <div id="selected-path" class="selected-path">/</div>
+            </div>
+            <div class="file-browser-actions">
+                <button class="btn btn-secondary" onclick="closeFileBrowser()">{{ t('cancel') }}</button>
+                <button class="btn btn-primary" onclick="selectPath()">{{ t('select') }}</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل تثبيت نماذج Ollama</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #3498db;
+            margin-top: 30px;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .note {
+            background-color: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 10px 15px;
+            margin: 20px 0;
+        }
+        .warning {
+            background-color: #fff8f8;
+            border-left: 4px solid #e74c3c;
+            padding: 10px 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>دليل تثبيت نماذج Ollama</h1>
+    
+    <p>هذا الدليل يشرح كيفية تثبيت واستخدام نماذج Ollama في تطبيق AI Translator.</p>
+    
+    <h2>المتطلبات الأساسية</h2>
+    
+    <ol>
+        <li>تثبيت برنامج Ollama من <a href="https://ollama.ai/download" target="_blank">الموقع الرسمي</a> حسب نظام التشغيل الخاص بك (Windows، macOS، Linux).</li>
+        <li>تشغيل خدمة Ollama في الخلفية.</li>
+    </ol>
+    
+    <h2>حل مشكلة "No matching distribution found for ollama-llama3"</h2>
+    
+    <p>إذا واجهت خطأ عند محاولة تثبيت نماذج Ollama مثل:</p>
+    
+    <pre>Failed to install ollama-llama3: ERROR: Could not find a version that satisfies the requirement ollama-llama3 (from versions: none) ERROR: No matching distribution found for ollama-llama3</pre>
+    
+    <p>فهذا يعني أن التطبيق يحاول تثبيت النموذج باستخدام pip، ولكن حزمة ollama-llama3 غير موجودة في PyPI.</p>
+    
+    <h3>الحل:</h3>
+    
+    <ol>
+        <li>تأكد من تثبيت برنامج Ollama من <a href="https://ollama.ai/download" target="_blank">الموقع الرسمي</a>.</li>
+        <li>تأكد من تشغيل خدمة Ollama في الخلفية.</li>
+        <li>استخدم الأمر التالي في سطر الأوامر لتثبيت النموذج مباشرة:</li>
+    </ol>
+    
+    <pre># في Windows
+cmd /c ollama pull llama3
+
+# في macOS أو Linux
+ollama pull llama3</pre>
+    
+    <h2>النماذج المدعومة</h2>
+    
+    <p>يمكنك تثبيت أي نموذج متاح في Ollama، بما في ذلك:</p>
+    
+    <ul>
+        <li>llama3</li>
+        <li>mistral</li>
+        <li>gemma</li>
+        <li>phi</li>
+        <li>codellama</li>
+        <li>llama2</li>
+        <li>vicuna</li>
+        <li>orca-mini</li>
+    </ul>
+    
+    <p>للحصول على قائمة كاملة بالنماذج المتاحة، قم بزيارة <a href="https://ollama.ai/library" target="_blank">مكتبة نماذج Ollama</a>.</p>
+    
+    <h2>استكشاف الأخطاء وإصلاحها</h2>
+    
+    <h3>خدمة Ollama لا تعمل</h3>
+    
+    <p>إذا كان برنامج Ollama مثبتًا ولكن الخدمة لا تعمل، ستظهر حالة النموذج كـ "installed_not_running". في هذه الحالة:</p>
+    
+    <ol>
+        <li>افتح سطر الأوامر.</li>
+        <li>قم بتشغيل خدمة Ollama باستخدام الأمر:</li>
+    </ol>
+    
+    <pre>ollama serve</pre>
+    
+    <h3>مشاكل أخرى</h3>
+    
+    <p>إذا واجهت مشاكل أخرى في تثبيت أو استخدام نماذج Ollama:</p>
+    
+    <ol>
+        <li>تأكد من أن لديك أحدث إصدار من Ollama.</li>
+        <li>تحقق من متطلبات النظام للنموذج الذي تحاول تثبيته.</li>
+        <li>تأكد من وجود مساحة كافية على القرص الصلب (بعض النماذج كبيرة الحجم).</li>
+        <li>راجع <a href="https://github.com/ollama/ollama/blob/main/README.md" target="_blank">وثائق Ollama الرسمية</a> للحصول على مزيد من المعلومات.</li>
+    </ol>
+    
+    <div class="note">
+        <p><strong>ملاحظة:</strong> بعض النماذج قد تتطلب مواصفات عالية للجهاز، خاصة من حيث ذاكرة الوصول العشوائي (RAM) وبطاقة الرسومات (GPU).</p>
+    </div>
+</body>
+</html>
