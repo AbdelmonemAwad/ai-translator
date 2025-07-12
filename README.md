@@ -67,7 +67,7 @@ AI Translator is a comprehensive media translation system designed to automatica
 **One-line installation for Ubuntu/Debian:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/AbdelmonemAwad/ai-translator/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/AbdelmonemAwad/ai-translator/main/install_complete.sh | bash
 ```
 
 This command automatically:
